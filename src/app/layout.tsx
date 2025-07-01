@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Baloo_2, Inter } from "next/font/google";
-import "./styles/globals.css";
+import "@/styles/globals.css";
+
+import PlayerLayout from "@/components/layout/player-layout";
 
 const baloo2 = Baloo_2({
   variable: "--font-title",
@@ -27,7 +29,9 @@ export default function RootLayout({
       <body
         className={`${baloo2.variable} ${inter.variable} antialiased`}
       >
-        {children}
+        <PlayerLayout>
+          {children}
+        </PlayerLayout>
       </body>
     </html>
   );
