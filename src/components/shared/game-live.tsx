@@ -9,12 +9,12 @@ export default function GameLive({ variant } : GameLiveProps) {
         <Link href="#" className="rounded-xl bg-white shadow-2xl flex flex-col gap-2 items-center pt-4 px-4 pb-6">
             <div className="flex items-center gap-2 flex-col">
                 { variant === "live" ? (
-                    <div className="flex items-center justify-center gap-2 bg-red-500 p-2 rounded-full">
+                    <div className="flex items-center justify-center gap-2 bg-red-500 px-5 py-2 rounded-full">
                         <span className="w-2 h-2 bg-[#ffffff] rounded-full inline-block flex-shrink-0" />
                         <p className="text-xs font-bold text-[#ffffff]">Ao vivo</p>
                     </div>
                 ) : (
-                    <div className="flex items-center justify-center gap-2 bg-[#EDEDED] py-1 px-8 rounded-full">
+                    <div className="flex items-center justify-center gap-2 bg-[#EDEDED] px-5 py-2 rounded-full">
                         <p className="text-xs font-semibold text-[#4F4F4F] font-title">Pendente</p>
                     </div>
                 )}
