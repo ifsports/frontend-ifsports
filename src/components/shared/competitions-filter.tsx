@@ -45,7 +45,7 @@ export default function CompetitionsFilter() {
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className="w-[250px] justify-between rounded-none rounded-tl-lg rounded-bl-lg"
+                    className="max-w-[250px] justify-between rounded-none rounded-tl-lg rounded-bl-lg"
                 >
                     {value
                         ? frameworks.find((framework) => framework.value === value)?.label

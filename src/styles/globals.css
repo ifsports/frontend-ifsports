@@ -134,3 +134,9 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@media (max-width: 1000px) {
+  html {
+    font-size: 87.5%;
+  }
+}

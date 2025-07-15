@@ -34,7 +34,7 @@ export default function GameLive({ variant } : GameLiveProps) {
 
                 <div>
                     { variant === "live" ? (
-                        <p className="text-4xl font-semibold">1 - 1</p>
+                        <p className="text-4xl font-semibold max-[338px]:text-3xl">1 - 1</p>
                     ) : (
                         <p className="text-4xl font-semibold">-</p>
                     )}

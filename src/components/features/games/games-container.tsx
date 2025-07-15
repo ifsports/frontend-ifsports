@@ -16,7 +16,7 @@ import {
 export default function GamesContainer() {
     return (
         <>
-            <div className="flex items-start justify-between mb-8">
+            <div className="flex items-start justify-between mb-8 max-[640px]:flex-col max-[640px]:gap-3">
                 <h3 className="font-title text-2xl font-bold">Todos os jogos</h3>
                 <div className="flex">
                     <CompetitionsFilter />
