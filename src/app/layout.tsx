@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Baloo_2, Inter } from "next/font/google";
 import "@/styles/globals.css";
 
-import PlayerLayout from "@/components/layout/player-layout";
+import NextAuthProvider from "@/components/providers/session-provider";
+import {Toaster} from "@/components/ui/sonner";
 
 const baloo2 = Baloo_2({
   variable: "--font-title",
@@ -25,14 +26,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <body
-        className={`${baloo2.variable} ${inter.variable} antialiased`}
-      >
-        <PlayerLayout>
-          {children}
-        </PlayerLayout>
-      </body>
-    </html>
+      <html lang="pt-BR">
+       <body className={`${baloo2.variable} ${inter.variable} antialiased`}>
+              <NextAuthProvider>
+                  {children}
+                  <Toaster />
+              </NextAuthProvider>
+          </body>
+      </html>
   );
 }
