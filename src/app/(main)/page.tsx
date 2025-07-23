@@ -205,9 +205,6 @@ export default function Home(){
                     </h2>
                     <div className="flex">
                         <CompetitionsFilter label="o campus" data={campusData} />
-                        <Button variant={"link"} className="rounded-none rounded-tr-lg rounded-br-lg border-none cursor-pointer text-[#ffffff] bg-[#4CAF50] hover:bg-[#147A02]">
-                            <Search size={18} />
-                        </Button>
                     </div>
                 </div>
 

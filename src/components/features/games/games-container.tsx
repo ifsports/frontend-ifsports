@@ -1,6 +1,6 @@
+"use client"
+
 import CompetitionsFilter from "@/components/shared/competitions-filter";
-import {Button} from "@/components/ui/button";
-import {Search} from "lucide-react";
 import GameLive from "@/components/shared/game-live";
 
 import {
@@ -12,8 +12,24 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
+import {useEffect, useState} from "react";
+import {Competition} from "@/types/competition";
+import {getCompetitionsNoAuth} from "@/lib/requests/competitions";
 
 export default function GamesContainer() {
+
+
+    async function getCompetitions() {
+        const response = await getCompetitionsNoAuth();
+
+        console.log(response)
+    }
+
+
+    useEffect(() => {
+        getCompetitions()
+    }, [])
+
 
     const competitions = [
         {
@@ -33,12 +49,10 @@ export default function GamesContainer() {
     return (
         <>
             <div className="flex items-start justify-between mb-8 max-[640px]:flex-col max-[640px]:gap-3">
-                <h3 className="font-title text-2xl font-bold">Todos os jogos</h3>
-                <div className="flex">
+                <h3 className="font-title text-2xl font-bold text-[#062601]">Todos os jogos</h3>
+                <div className="flex gap-4">
+                    <CompetitionsFilter label="o campus" data={competitions} />
                     <CompetitionsFilter label="a competição" data={competitions} />
-                    <Button variant={"link"} className="rounded-none rounded-tr-lg rounded-br-lg border-none cursor-pointer text-[#ffffff] bg-[#4CAF50] hover:bg-[#147A02]">
-                        <Search size={18} />
-                    </Button>
                 </div>
             </div>
 
