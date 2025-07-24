@@ -43,10 +43,3 @@ export interface MatchTeam {
     competition: string;
     team_id: string;
 }
-
-export interface APIGetMatchesFromCampus {
-    count: number;
-    next: string | undefined;
-    previous: string | undefined;
-    results: Match[];
-}

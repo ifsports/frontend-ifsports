@@ -1,7 +1,8 @@
 'use client'
 
 import { getTeamFromCampusAuth, getTeamFromCampusNoAuth } from "@/lib/requests/teams";
-import type { Competition, Match } from "@/types/competition";
+import type { Competition } from "@/types/competition";
+import type { MatchLive } from "@/types/match-comments";
 import type { Team } from "@/types/team";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -9,7 +10,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface GameLiveProps {
-    matchData: Match | null;
+    matchData: MatchLive | null;
     competition: Competition | null;
     selectedCampus: string;
 }
@@ -57,12 +58,12 @@ export default function GameLive({ matchData, competition, selectedCampus } : Ga
 
     function getTeamsMatch(teams: Team[]) {
         return teams.filter((team) =>
-            team.id === matchData?.team_home?.team_id || team.id === matchData?.team_away?.team_id
+            team.id === matchData?.team_home_id || team.id === matchData?.team_away_id
         );
     }
 
     return (
-        <Link href={`/jogos/${matchData?.id}`} className="rounded-xl bg-white shadow-2xl flex flex-col gap-2 items-center pt-4 px-4 pb-6">
+        <Link href={`/jogos/${matchData?.match_id}`} className="rounded-xl bg-white shadow-2xl flex flex-col gap-2 items-center pt-4 px-4 pb-6">
             <div className="flex items-center gap-2 flex-col">
                 { matchData?.status === "in-progress" ? (
                     <div className="flex items-center justify-center gap-2 bg-red-500 px-5 py-2 rounded-full">
@@ -80,10 +81,10 @@ export default function GameLive({ matchData, competition, selectedCampus } : Ga
             <div className="flex items-center justify-between gap-4 w-full">
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-center w-16 h-16 rounded-full flex-shrink-0 bg-[#4CAF50]">
-                        <p className="font-bold text-[#ffffff] text-sm">{matchTeams?.find(t => t.id === matchData?.team_home?.team_id)?.abbreviation || ""}</p>
+                        <p className="font-bold text-[#ffffff] text-sm">{matchTeams?.find(t => t.id === matchData?.team_home_id)?.abbreviation || ""}</p>
                     </div>
                     <div className="flex items-center justify-center flex-col">
-                        <p className="font-medium text-sm">{matchTeams?.find(t => t.id === matchData?.team_home?.team_id)?.name || "Equipe Casa"}</p>
+                        <p className="font-medium text-sm">{matchTeams?.find(t => t.id === matchData?.team_home_id)?.name || "Equipe Casa"}</p>
                         <p className="text-xs text-[#9CA4AB]">Casa</p>
                     </div>
                 </div>
@@ -98,10 +99,10 @@ export default function GameLive({ matchData, competition, selectedCampus } : Ga
 
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-center w-16 h-16 rounded-full flex-shrink-0 bg-[#4CAF50]">
-                        <p className="font-bold text-[#ffffff] text-sm">{matchTeams?.find(t => t.id === matchData?.team_away?.team_id)?.abbreviation || ""}</p>
+                        <p className="font-bold text-[#ffffff] text-sm">{matchTeams?.find(t => t.id === matchData?.team_away_id)?.abbreviation || ""}</p>
                     </div>
                     <div className="flex items-center justify-center flex-col">
-                        <p className="font-medium text-sm">{matchTeams?.find(t => t.id === matchData?.team_away?.team_id)?.name || "Equipe Visitante"}</p>
+                        <p className="font-medium text-sm">{matchTeams?.find(t => t.id === matchData?.team_away_id)?.name || "Equipe Visitante"}</p>
                         <p className="text-xs text-[#9CA4AB]">Visitante</p>
                     </div>
                 </div>

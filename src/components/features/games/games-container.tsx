@@ -6,30 +6,36 @@ import GameLive from "@/components/shared/game-live";
 import {
     Pagination,
     PaginationContent,
-    PaginationEllipsis,
     PaginationItem,
     PaginationLink,
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
 import {useEffect, useMemo, useState} from "react";
-import {Competition, type APIGetCompetitions, type APIGetMatchesFromCampus, type Match} from "@/types/competition";
-import {getCompetitionsAuth, getCompetitionsNoAuth, getMatchesFromAllCompetitions} from "@/lib/requests/competitions";
+import {Competition} from "@/types/competition";
+import {getCompetitionsAuth, getCompetitionsNoAuth} from "@/lib/requests/competitions";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 
 import { campusData } from "@/lib/campus";
 import { toast } from "sonner";
+import { getMatchesFromCompetition } from "@/lib/requests/match-comments";
+import type { MatchLive } from "@/types/match-comments";
+
+const MATCHES_PER_PAGE = 6;
 
 export default function GamesContainer() {
     const [competitions, setCompetitions] = useState<Competition[] | null>(null);
-    const [matches, setMatches] = useState<APIGetMatchesFromCampus | undefined>(undefined);
+    const [matches, setMatches] = useState<MatchLive[] | null>(null);
     const [selectedCampus, setSelectedCampus] = useState("");
     const [selectedCompetition, setSelectedCompetition] = useState("");
     const [isCampusSelected, setIsCampusSelected] = useState(false);
     const [isCompetitionSelected, setIsCompetitionSelected] = useState(false);
     const [competition, setCompetition] = useState<Competition | null>(null);
+    const [page, setPage] = useState(1);
+    const [hasNextPage, setHasNextPage] = useState(false);
+    const [hasPreviousPage, setHasPreviousPage] = useState(false);
 
     const { data: session, status } = useSession();
 
@@ -55,28 +61,52 @@ export default function GamesContainer() {
     }
 
     async function getMatchesAllCompetitions() {
-        if (selectedCompetition) {
-            const competition = competitions?.find((competition) => 
-                competition.id === selectedCompetition
-            )
-            
-            if (!competition) {
-                return null;
-            }
+        if (!selectedCompetition) {
+            setMatches(null);
+            return;
+        }
 
-            setCompetition(competition)
+        const competitionDetails = competitions?.find((c) => c.id === selectedCompetition);
 
-            try {
-                const response = await getMatchesFromAllCompetitions(competition.id);
-                
-                setMatches(response?.data)
-                
-            } catch (error) {
-                toast.error("Erro ao buscar partidas");
-                setCompetitions(null);
+        if (competitionDetails) {
+            setCompetition(competitionDetails);
+        }
+
+        try {
+        const offset = (page - 1) * MATCHES_PER_PAGE;
+
+        const response = await getMatchesFromCompetition({
+            competition_id: selectedCompetition,
+            limit: MATCHES_PER_PAGE + 1, 
+            offset,
+        });
+
+        if (response && Array.isArray(response.data)) {
+            const receivedMatches = response.data as MatchLive[];
+
+            const hasMore = receivedMatches.length > MATCHES_PER_PAGE;
+            setHasNextPage(hasMore);
+            setHasPreviousPage(page > 1);
+
+            if (hasMore) {
+                setMatches(receivedMatches.slice(0, MATCHES_PER_PAGE));
+            } else {
+                setMatches(receivedMatches);
             }
+        } else {
+            setMatches(null);
+            setHasNextPage(false);
+            setHasPreviousPage(page > 1);
+        }
+        } catch (error) {
+            toast.error("Erro ao buscar partidas");
+            setMatches(null);
         }
     }
+
+    useEffect(() => {
+        getMatchesAllCompetitions();
+    }, [page]);
     
     useEffect(() => {
         if (status === "authenticated" && session?.user?.name) {
@@ -90,40 +120,6 @@ export default function GamesContainer() {
             value: competition.id,
         })) ?? [];
     }, [competitions]);
-
-    function renderPaginationInfo(matches: APIGetMatchesFromCampus | undefined): React.ReactNode {
-        if (!matches) return null;
-
-        const getPageParam = (url?: string): number => {
-            if (!url) return 1;
-            const match = url.match(/[?&]page=(\d+)/);
-            return match ? parseInt(match[1], 10) : 1;
-        };
-
-        const getPageSize = (): number => {
-            const url = matches.next || matches.previous;
-            if (!url) return matches.results.length || 10;
-            const match = url.match(/[?&](page_size|limit)=(\d+)/);
-            return match ? parseInt(match[2], 10) : matches.results.length || 10;
-        };
-
-        const pageSize = getPageSize();
-        const totalPages = Math.ceil(matches.count / pageSize);
-
-        let currentPage = 1;
-        if (matches.previous) {
-            currentPage = getPageParam(matches.previous) + 1;
-        } else if (matches.next) {
-            currentPage = getPageParam(matches.next) - 1;
-        }
-
-        return (
-            <PaginationItem>
-                <PaginationLink>Página {currentPage} de {totalPages}</PaginationLink>
-            </PaginationItem>
-        );
-    }
-
 
     return (
         <>
@@ -162,53 +158,75 @@ export default function GamesContainer() {
                     )}
                 </div>
             </div>
-
             
+
             {isCompetitionSelected ? (
-                matches?.results && matches.results.length > 0 ? (
+                matches && matches.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {matches.results.map((match) => (
-                            <GameLive 
-                                key={match.id} 
-                                matchData={match} 
-                                competition={competition} 
-                                selectedCampus={selectedCampus} 
+                        {matches.map((match) => {
+                            return (
+                            <GameLive
+                                key={match.match_id} 
+                                matchData={match}
+                                competition={competition}
+                                selectedCampus={selectedCampus}
                             />
-                        ))}
+                            );
+                        })}
                     </div>
                 ) : (
                     <div className="flex items-center justify-center w-full my-30">
-                        <p>Não há partidas registradas para esta competição!</p>
+                    <p>Não há partidas registradas para esta competição!</p>
                     </div>
                 )
-                ) : (isCampusSelected || status === "authenticated")  && !isCompetitionSelected  ? (
+            ) : (
+                isCampusSelected || status === "authenticated") && !isCompetitionSelected ? (
                     <div className="flex items-center justify-center w-full my-30">
                         <p>Selecione a competição...</p>
                     </div>
                 ) : status === "unauthenticated" && !isCampusSelected && (
-                <div className="flex items-center justify-center w-full my-30">
-                    <p>Selecione o campus...</p>
-                </div>
+                    <div className="flex items-center justify-center w-full my-30">
+                        <p>Selecione o campus...</p>
+                    </div>
             )}
 
-            {(matches?.results || []).length > 0 && (
-                <Pagination className="my-10">
-                    <PaginationContent className="flex items-center gap-8">
-                        <PaginationItem className={matches?.previous && "cursor-pointer"} >
-                            <PaginationPrevious
-                                href={matches?.previous}
-                                className={matches?.previous ? "" : "pointer-events-none opacity-50"}
+            {(matches || []).length > 0 && (
+                <Pagination className="my-14">
+                    <PaginationContent>
+
+                        <PaginationItem>
+                           <PaginationPrevious
+                                href="#"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    if (hasPreviousPage) setPage(page - 1);
+                                }}
+                                aria-disabled={!hasPreviousPage}
+                                className={!hasPreviousPage ? "pointer-events-none opacity-50" : ""}
                             />
                         </PaginationItem>
-                        
-                        {renderPaginationInfo(matches)}
-                        
-                        <PaginationItem className={matches?.next && "cursor-pointer"} >
+
+                        <PaginationItem>
+                            <PaginationLink
+                                isActive
+                                onClick={(e) => e.preventDefault()}
+                            >
+                                {page}
+                            </PaginationLink>
+                        </PaginationItem>
+
+                        <PaginationItem>
                             <PaginationNext
-                                href={matches?.next}
-                                className={matches?.next ? "" : "pointer-events-none opacity-50"}
+                                href="#"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    if (hasNextPage) setPage(page + 1);
+                                }}
+                                aria-disabled={!hasNextPage}
+                                className={!hasNextPage ? "pointer-events-none opacity-50" : ""}
                             />
                         </PaginationItem>
+
                     </PaginationContent>
                 </Pagination>
             )}
