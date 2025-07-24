@@ -24,10 +24,11 @@ interface CompetitionsFilterProps {
     data: {
         value: string;
         label: string;
-    }[]
+    }[];
+    onChange?: (value: string) => void;
 }
 
-export default function CompetitionsFilter({ label, data } : CompetitionsFilterProps) {
+export default function CompetitionsFilter({ label, data, onChange } : CompetitionsFilterProps) {
     const [open, setOpen] = React.useState(false)
     const [value, setValue] = React.useState("")
 
@@ -51,15 +52,17 @@ export default function CompetitionsFilter({ label, data } : CompetitionsFilterP
                     <Command>
                         <CommandInput placeholder={`Procurar ${label}...`} />
                         <CommandList>
-                            <CommandEmpty>No {label.split(" ")[1]} found.</CommandEmpty>
+                            <CommandEmpty> {label.split(" ")[1]?.charAt(0).toUpperCase() + label.split(" ")[1]?.slice(1)} não encontrada(o).</CommandEmpty>
                             <CommandGroup>
                                 {data.map((dataValue) => (
                                     <CommandItem
                                         key={dataValue.value}
                                         value={dataValue.value}
                                         onSelect={(currentValue) => {
-                                            setValue(currentValue === value ? "" : currentValue)
-                                            setOpen(false)
+                                            const newValue = currentValue === value ? "" : currentValue;
+                                            setValue(newValue);
+                                            onChange?.(newValue);
+                                            setOpen(false);
                                         }}
                                     >
                                         <CheckIcon
@@ -76,9 +79,6 @@ export default function CompetitionsFilter({ label, data } : CompetitionsFilterP
                     </Command>
                 </PopoverContent>
             </Popover>
-            <Button variant={"link"} className="rounded-none rounded-tr-lg rounded-br-lg border-none cursor-pointer text-[#ffffff] bg-[#4CAF50] hover:bg-[#147A02]">
-                <Search size={18} />
-            </Button>
         </div>
     )
 }

@@ -1,20 +1,47 @@
 import {axiosAPI} from "@/lib/axios-api";
-import {APIGetCompetitions} from "@/types/competition";
+import {APIGetCompetitions, type APIGetMatchesFromCampus} from "@/types/competition";
 
-export const getCompetitionsNoAuth = async () => {
+export const getCompetitionsNoAuth = async (campus_code: { campus_code: string }) => {
     const result = await axiosAPI<APIGetCompetitions>({
         endpoint: "/competitions/",
-        withAuth: true, // assumindo que não precisa de auth
+        method: "GET",
+        withAuth: false,
+        queryParams: campus_code,
     });
-
-    console.log("Resultado completo:", result);
-    console.log("Tem data?", !!result.data);
-    console.log("Tem error?", !!result.error);
 
     if (result.error) {
         console.log("Erro:", result.error);
         return null;
     }
 
-    return result.data;
+    return result;
 };
+
+export const getCompetitionsAuth = async () => {
+    const result = await axiosAPI<APIGetCompetitions>({
+        endpoint: "/competitions/",
+        method: "GET",
+        withAuth: true,
+    });
+
+    if (result.error) {
+        console.log("Erro:", result.error);
+        return null;
+    }
+
+    return result;
+};
+
+export const getMatchesFromAllCompetitions = async ( competition_id : string ) => {
+    const result = await axiosAPI<APIGetMatchesFromCampus>({
+        endpoint: `/competitions/${competition_id}/matches/`,
+        withAuth: false,
+    })
+
+    if (result.error) {
+        console.log("Erro:", result.error);
+        return null;
+    }
+
+    return result;
+}

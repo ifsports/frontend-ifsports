@@ -27,8 +27,6 @@ export const axiosAPI = async <TypeResponse>({
         baseURL: BASE_URL,
     });
 
-    console.log()
-
     if (withAuth) {
         const session = await getServerSession(authOptions);
 
