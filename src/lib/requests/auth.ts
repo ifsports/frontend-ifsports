@@ -17,3 +17,13 @@ export const signIn = async (data: SignInData) => {
         }
     };
 };
+
+export const getDetailsUser = async (user_id: string) => {
+    const response = await axiosAPI({
+        endpoint: `/auth/users/${user_id}/`,
+        method: "GET",
+        withAuth: false,
+    });
+
+    return response;
+}

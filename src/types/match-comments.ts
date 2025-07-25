@@ -12,3 +12,25 @@ export interface MatchLive {
 export interface APIGetMatchesLiveFromCampus {
   matches: MatchLive[] | null;
 }
+
+export interface Comments {
+  id: string;
+  body: string;
+  match_id: string;
+  created_at: string;
+}
+
+export interface Chat {
+  id: string;
+  match_id: string;
+  created_at: string;
+  finished_at: string | null;
+}
+
+export interface Message {
+  id: string;
+  body: string;
+  user_id: string;
+  chat_id: string;
+  created_at: string;
+}

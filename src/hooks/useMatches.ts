@@ -1,5 +1,5 @@
-import { getMatchesFromCompetition } from "@/lib/requests/match-comments";
-import type { MatchLive } from "@/types/match-comments";
+import { getChatMessagesFromMatch, getMatchDetail, getMatchesFromCompetition } from "@/lib/requests/match-comments";
+import type { MatchLive, Message } from "@/types/match-comments";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -41,5 +41,49 @@ export function useMatches(selectedCompetition: string, page: number, isCompetit
               return finalResult;
           },
           enabled: !!selectedCompetition && isCompetitionSelected,
+      });
+}
+
+export function useMatchDetails(matchId: string) {
+  return useQuery({
+          queryKey: ['matchDetails', matchId],
+          queryFn: async () => {
+              if (!matchId) {
+                  toast.error("Por favor, selecione um jogo para ver os detalhes.");
+                  throw new Error("Jogo não selecionado");
+              }
+  
+              const response = await getMatchDetail({ match_id: matchId });
+  
+              if (!response || !response.data) {
+                  toast.error("Detalhes do jogo não encontrados.");
+                  throw new Error("Dados do jogo não encontrados");
+              }
+  
+              return response?.data as MatchLive;
+          },
+          enabled: !!matchId,
+      });
+}
+
+export function getChatMessages(chatId: string | null){
+    return useQuery({
+          queryKey: ['chatMessages', chatId],
+          queryFn: async () => {
+              if (!chatId) {
+                  toast.error("Por favor, informe o ID do chat para ver as mensagens.");
+                  throw new Error("Jogo não selecionado");
+              }
+  
+              const response = await getChatMessagesFromMatch({ chat_id: chatId });
+  
+              if (!response || !response.data) {
+                  toast.error("Detalhes do jogo não encontrados.");
+                  throw new Error("Dados do jogo não encontrados");
+              }
+  
+              return response?.data as Message[];
+          },
+          enabled: !!chatId,
       });
 }

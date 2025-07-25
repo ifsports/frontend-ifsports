@@ -28,8 +28,6 @@ export default function GamesContainer() {
     const [isCompetitionSelected, setIsCompetitionSelected] = useState(false);
     const [page, setPage] = useState(1);
 
-    console.log("Selected Campus:", selectedCampus);
-
     const { 
         data: competitions, 
         isLoading: isLoadingCompetitions 
