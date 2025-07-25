@@ -5,11 +5,14 @@ import GameChat from "@/components/features/games/game-chat";
 interface GameCommentsPageProps {
     params: Promise<{
         gameId: string;
+        campusId: string;
     }>,
 }
 
 export default async function GameCommentsPage({ params } : GameCommentsPageProps) {
-    const { gameId } = await params;
+    const { gameId, campusId } = await params;
+
+    console.log("GameCommentsPage params:", { gameId, campusId });
 
     return (
         <div className="mt-8 mb-12 w-full h-screen flex justify-between gap-4">

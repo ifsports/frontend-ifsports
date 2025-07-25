@@ -9,11 +9,6 @@ export const getCompetitionsNoAuth = async (campus_code: { campus_code: string }
         queryParams: campus_code,
     });
 
-    if (result.error) {
-        console.log("Erro:", result.error);
-        return null;
-    }
-
     return result;
 };
 
@@ -23,11 +18,6 @@ export const getCompetitionsAuth = async () => {
         method: "GET",
         withAuth: true,
     });
-
-    if (result.error) {
-        console.log("Erro:", result.error);
-        return null;
-    }
 
     return result;
 };

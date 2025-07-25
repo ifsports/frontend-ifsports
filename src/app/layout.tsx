@@ -4,6 +4,7 @@ import "@/styles/globals.css";
 
 import NextAuthProvider from "@/components/providers/session-provider";
 import {Toaster} from "@/components/ui/sonner";
+import TanstackProviders from "@/components/providers/query-provider";
 
 const baloo2 = Baloo_2({
   variable: "--font-title",
@@ -28,10 +29,12 @@ export default function RootLayout({
   return (
       <html lang="pt-BR">
        <body className={`${baloo2.variable} ${inter.variable} antialiased`}>
+          <TanstackProviders>
               <NextAuthProvider>
                   {children}
                   <Toaster />
               </NextAuthProvider>
+          </TanstackProviders>
           </body>
       </html>
   );

@@ -55,10 +55,6 @@ export const axiosAPI = async <TypeResponse>({
         };
     } catch (error) {
         const e = error as AxiosError<APIError>;
-        return {
-            error: {
-                message: e.response?.data.detail ?? "Ocorreu um erro inesperado",
-            },
-        };
+        throw new Error(e.response?.data?.detail ?? "Ocorreu um erro inesperado");
     }
 };

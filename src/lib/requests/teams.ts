@@ -6,10 +6,6 @@ export const getTeamFromCampusAuth = async () => {
         endpoint: `/teams/`,
     })
 
-    if (result.error) {
-        return null;
-    }
-
     return result;
 }
 
@@ -19,10 +15,6 @@ export const getTeamFromCampusNoAuth = async (campus: { campus: string }) => {
         withAuth: false,
         queryParams: campus,
     })
-
-    if (result.error) {
-        return null;
-    }
 
     return result;
 }
