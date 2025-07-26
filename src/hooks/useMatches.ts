@@ -1,4 +1,6 @@
+import { getMatchesToday } from "@/lib/requests/competitions";
 import { getChatMessagesFromMatch, getMatchDetail, getMatchesFromCompetition } from "@/lib/requests/match-comments";
+import type { Match } from "@/types/competition";
 import type { MatchLive, Message } from "@/types/match-comments";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -85,5 +87,27 @@ export function getChatMessages(chatId: string | null){
               return response?.data as Message[];
           },
           enabled: !!chatId,
+      });
+}
+
+export function useMatchesToday(campus_code: string) {
+  return useQuery({
+          queryKey: ['matchDetails', campus_code],
+          queryFn: async () => {
+              if (!campus_code) {
+                  toast.error("Por favor, selecione um campus para ver as partidas de hoje.");
+                  throw new Error("Jogo não selecionado");
+              }
+  
+              const response = await getMatchesToday({ campus_code: campus_code });
+  
+              if (!response || !response.data) {
+                  toast.error("Detalhes do jogo não encontrados.");
+                  throw new Error("Dados do jogo não encontrados");
+              }
+  
+              return response?.data as Match[];
+          },
+          enabled: !!campus_code,
       });
 }
