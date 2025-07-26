@@ -14,3 +14,7 @@ export interface User {
   is_staff: boolean;
   groups: string[];
 }
+
+export interface APIGetUsersByIds {
+  ids: string[];
+}

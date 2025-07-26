@@ -1,6 +1,7 @@
 import {axiosAPI} from "@/lib/axios-api";
 import {APISignIn} from "@/types/auth";
 import {SignInData} from "@/lib/schemas/auth-schema";
+import type { APIGetUsersByIds } from "@/types/user";
 
 export const signIn = async (data: SignInData) => {
     const axiosResponse = await axiosAPI<APISignIn>({
@@ -23,6 +24,17 @@ export const getDetailsUser = async (user_id: string) => {
         endpoint: `/auth/users/${user_id}/`,
         method: "GET",
         withAuth: false,
+    });
+
+    return response;
+}
+
+export const getDetailsUserByIds = async (data: APIGetUsersByIds) => {
+    const response = await axiosAPI({
+        endpoint: `/auth/users/by-ids/`,
+        method: "POST",
+        withAuth: false,
+        data,
     });
 
     return response;
