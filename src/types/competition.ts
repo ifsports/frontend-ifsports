@@ -43,3 +43,8 @@ export interface MatchTeam {
     competition: string;
     team_id: string;
 }
+
+export interface APIGetTeamInCompetition {
+    team_id: string;
+    competition: Competition;
+}

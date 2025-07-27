@@ -13,7 +13,7 @@ export interface DataTableProps {
 export default function DataTable({ columns, data, onRowAction, className = "", responsive = true }: DataTableProps) {
   return (
     <div className={`overflow-x-auto ${className}`}>
-      <table className={`font-sans text-sm w-full mt-5 border-collapse table-auto ${responsive ? 'min-w-[47rem]' : ''}`}>
+      <table className={`text-sm w-full mt-5 border-collapse table-auto ${responsive ? 'min-w-[47rem]' : ''}`}>
         <TableHeader columns={columns} />
         <TableBody
           columns={columns}

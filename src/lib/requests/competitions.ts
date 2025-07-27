@@ -1,5 +1,5 @@
 import {axiosAPI} from "@/lib/axios-api";
-import {APIGetCompetitions, type Match} from "@/types/competition";
+import {APIGetCompetitions, type APIGetTeamInCompetition, type Match} from "@/types/competition";
 
 export const getCompetitionsNoAuth = async (campus_code: { campus_code: string }) => {
     const result = await axiosAPI<APIGetCompetitions>({
@@ -20,6 +20,21 @@ export const getCompetitionsAuth = async () => {
     });
 
     return result;
+};
+
+export const getTeamInCompetition = async (team_id: string) => {
+    try {
+        const result = await axiosAPI<APIGetTeamInCompetition>({
+            endpoint: `/competitions/teams/${team_id}/`,
+            method: "GET",
+            withAuth: true,
+        });
+
+        return { success: true, data: result };
+    } catch (err) {
+        const error = err as Error;
+        return { success: false, error: error.message };
+    }
 };
 
 export const getMatchesToday = async (campus_code: { campus_code: string }) => {

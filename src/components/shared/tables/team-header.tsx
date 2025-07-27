@@ -1,10 +1,10 @@
 import { ChevronDown } from "lucide-react";
 import ActionButton, { type ActionButtonProps } from "./action-button";
 import TeamInfo from "./team-info";
-import type { Team } from "@/types/team";
+import type { Team, TeamWithCompetition } from "@/types/team";
 
 export interface TeamHeaderProps {
-  team: Team;
+  team: TeamWithCompetition;
   actions: ActionButtonProps[];
   isExpanded: boolean;
   onToggle: () => void;

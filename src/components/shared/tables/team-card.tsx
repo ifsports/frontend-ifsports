@@ -1,10 +1,10 @@
 import React from 'react';
 import type { ActionButtonProps } from './action-button';
 import TeamHeader from './team-header';
-import type { Team } from '@/types/team';
+import type { Team, TeamWithCompetition } from '@/types/team';
 
 export interface TeamCardProps {
-  team: Team;
+  team: TeamWithCompetition;
   isExpanded: boolean;
   onToggle: () => void;
   actions?: ActionButtonProps[];

@@ -5,12 +5,12 @@ export interface InputFieldProps {
   label: string;
   type?: string;
   placeholder?: string;
-  value: string;
-  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  value?: string;
+  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
   className?: string;
 }
 
-export default function InputField({ id, label, type = "text", placeholder, value, onChange, className = "py-5 px-4 border-0 rounded-md bg-white" }: InputFieldProps){
+export default function InputField({ id, label, type = "text", placeholder, value, onChange, className = "py-5 px-4 border-0 rounded-md bg-white", ...rest }: InputFieldProps){
   return (
     <div className="flex flex-col gap-4">
       <label htmlFor={id}>{label}</label>
@@ -21,6 +21,7 @@ export default function InputField({ id, label, type = "text", placeholder, valu
         value={value}
         onChange={onChange}
         className={className} 
+        {...rest}
       />
     </div>
   )

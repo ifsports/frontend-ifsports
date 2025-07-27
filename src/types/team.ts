@@ -1,3 +1,5 @@
+import type { Competition } from "./competition";
+
 export interface Team {
   id: string;
   name: string;
@@ -6,6 +8,10 @@ export interface Team {
   status: 'pendent' | 'active' | 'closed';
   campus_code: string;
   members: TeamMember[];
+}
+
+export interface TeamWithCompetition extends Team {
+  competition: Competition | null;
 }
 
 export interface TeamMember {

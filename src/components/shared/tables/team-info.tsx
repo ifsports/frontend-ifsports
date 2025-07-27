@@ -1,8 +1,8 @@
-import type { Team } from "@/types/team";
+import type { Team, TeamWithCompetition } from "@/types/team";
 import { Volleyball } from "lucide-react";
 
 export interface TeamInfoProps {
-  team: Team;
+  team: TeamWithCompetition;
 }
 
 export default function TeamInfo({ team }: TeamInfoProps) {
@@ -13,7 +13,7 @@ export default function TeamInfo({ team }: TeamInfoProps) {
       </div>
       <div className="flex flex-col">
         <span className="font-medium text-sm">{team.name}</span>
-        <p className="text-xs text-gray-400">{team.name}</p>
+        <p className="text-xs text-gray-400">{team.competition?.name}</p>
       </div>
     </div>
   );
