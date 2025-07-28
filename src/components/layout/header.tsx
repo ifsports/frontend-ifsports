@@ -17,9 +17,21 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { toast } from "sonner";
 
 export default function Header() {
     const { data: session } = useSession() as SessionType;
+
+    const handleLogout = async () => {
+        try {
+            await signOut({ 
+                callbackUrl: "/auth/login",
+                redirect: true 
+            });
+        } catch (error) {
+            toast.error("Erro no logout");
+        }
+    };
 
     return (
         <header className="py-5 flex items-center justify-between">
@@ -52,7 +64,7 @@ export default function Header() {
                     <DropdownMenuContent>
                         <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => signOut({ redirect: false })}>
+                        <DropdownMenuItem onClick={handleLogout}>
                             <LogOut className="text-red-500" />
                             Sair
                         </DropdownMenuItem>

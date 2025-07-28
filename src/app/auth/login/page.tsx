@@ -1,6 +1,6 @@
 'use client';
 
-import { signIn, signOut, useSession } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import {useEffect, useState} from 'react';
 import { z } from 'zod';
 import { signInSchema, type SignInData } from '@/lib/schemas/auth-schema';
@@ -8,12 +8,14 @@ import {toast} from "sonner";
 
 import loginImg from "@/assets/login.png";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {SessionType} from "@/types/auth";
 
 export default function LoginPage() {
     const { data: session, status } = useSession() as SessionType;
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const callbackUrl = searchParams.get('callbackUrl') || '/';
     const [credentials, setCredentials] = useState<SignInData>({
         matricula: '',
         password: ''
@@ -23,9 +25,9 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (session) {
-            router.push("/");
+            router.push(callbackUrl);
         }
-    }, [session]);
+    }, [session, callbackUrl, router]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -43,9 +45,11 @@ export default function LoginPage() {
 
             if (result?.error) {
                 toast(result.error)
-            } else {
+            } else if (result?.ok) {
                 toast("Autenticado com sucesso!")
-                router.push("/")
+                router.push(callbackUrl);
+            } else {
+                toast("Erro inesperado durante o login");
             }
         } catch (error) {
             if (error instanceof z.ZodError) {
@@ -64,16 +68,18 @@ export default function LoginPage() {
         }
     };
 
-    const handleLogout = () => {
-        signOut({ redirect: false });
-    };
-
     if (status === 'loading') {
         return <div className="p-4">Carregando...</div>;
     }
 
     const handleSuapLoginRedirect = () => {
-        window.location.href = "https://suap.ifrn.edu.br/accounts/login/?next=/o/authorize/%3Fclient_id%3DAcFNXdcMNZhtDKI3LMYhrtzC5xTeisjKmq41opDR%26response_type%3Dcode%26scope%3Didentificacao%2520email%2520documentos_pessoais";
+        const suapUrl = "https://suap.ifrn.edu.br/accounts/login/?next=/o/authorize/%3Fclient_id%3DAcFNXdcMNZhtDKI3LMYhrtzC5xTeisjKmq41opDR%26response_type%3Dcode%26scope%3Didentificacao%2520email%2520documentos_pessoais";
+        
+        if (callbackUrl !== '/') {
+            localStorage.setItem('suap_callback_url', callbackUrl);
+        }
+        
+        window.location.href = suapUrl;
     };
 
     return (
@@ -139,10 +145,6 @@ export default function LoginPage() {
                         {loading ? 'Entrando...' : 'Entrar'}
                     </button>
                 </form>
-
-                <button onClick={handleLogout}>
-                    Sair
-                </button>
 
                 <div className="mt-8 flex flex-col items-center gap-6">
                     <div className="flex w-full items-center gap-2.5">
