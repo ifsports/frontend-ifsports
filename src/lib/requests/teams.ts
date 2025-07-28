@@ -22,7 +22,7 @@ export const getTeamFromCampusNoAuth = async (campus: { campus: string }) => {
 export const deleteTeamMemberFromTeam = async ({ team_id, team_member_id, data }: { team_id: string, team_member_id: string, data: object }) => {
     try {
         const result = await axiosAPI({
-            endpoint: `/teams/${team_id}/members/${team_member_id}/`,
+            endpoint: `/teams/${team_id}/members/${team_member_id}`,
             method: "DELETE",
             data,
         })
@@ -53,7 +53,7 @@ export const addTeamMemberFromTeam = async ({ team_id, data }: { team_id: string
 export const deleteTeam = async ({ team_id, data }: { team_id: string, data: object }) => {
     try {
         const result = await axiosAPI({
-            endpoint: `/teams/${team_id}/`,
+            endpoint: `/teams/${team_id}`,
             method: "DELETE",
             data,
         })

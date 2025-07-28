@@ -7,7 +7,6 @@ export const addMemberToTeam = z.object({
 export type addMemberToTeamData = z.infer<typeof addMemberToTeam>;
 
 export const removeMemberFromTeam = z.object({
-    enrollment: z.string().min(1, "Matricula obrigatória"),
     reason: z.string().min(1, "Motivo obrigatório"),
 });
 

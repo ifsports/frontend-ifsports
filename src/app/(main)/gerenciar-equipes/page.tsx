@@ -95,7 +95,6 @@ export default function TeamManagement() {
       closeDialog(type);
     } else if (type === 'removeTeam') {
       const data = removeTeamForm.getValues();
-      console.log('Removendo equipe:', selectedTeam, 'Motivo:', data.reason);
       
       const response = await deleteTeam({
         team_id: selectedTeam?.id || '',
@@ -131,7 +130,6 @@ export default function TeamManagement() {
         competition: teamCompetitions[index]?.data?.competition || null
       }));
       setTeams(updatedTeams);
-      console.log('Equipes atualizadas:', updatedTeams);
   }
 
   async function getTeamCompetition(teamId: string) {
@@ -162,10 +160,8 @@ export default function TeamManagement() {
   async function getPlayers(data: { ids: string[] }) {
     const response = await getDetailsUserByIds(data);
 
-    console.log('Dados recebidos:', response.data);
-
-    if (!response.data || !Array.isArray(response.data)) {
-      toast.error('Dados inválidos recebidos ao buscar membros.');
+    if (!response.success) {
+      toast.error(response.error);
       return;
     }
 
@@ -333,7 +329,7 @@ export default function TeamManagement() {
         }}
         title={`Excluir ${selectedPlayer?.name || ''} da equipe?`}
       >
-        <form className='flex flex-col gap-6' onSubmit={removePlayerForm.handleSubmit((data) => handleSubmit('removePlayer', data))}>
+        <div className='flex flex-col gap-6'>
           <div>
             <TextAreaField
               id="remove-player-reason"
@@ -342,14 +338,28 @@ export default function TeamManagement() {
               {...removePlayerForm.register('reason')}
             />
             {removePlayerForm.formState.errors.reason && (
-              <p className="text-red-600 text-sm mt-2">{removePlayerForm.formState.errors.reason.message}</p>
+              <p className="text-red-600 text-sm mt-2">
+                {removePlayerForm.formState.errors.reason.message}
+              </p>
             )}
           </div>
           
-          <ActionButton type="submit" variant="danger">
+          <ActionButton
+            type="button"
+            variant="danger"
+            onClick={async () => {
+              const isValid = await removePlayerForm.trigger();
+              
+              if (!isValid) {
+                return;
+              }
+
+              await handleSubmit('removePlayer');
+            }}
+          >
             Excluir participante
           </ActionButton>
-        </form>
+        </div>
       </CustomDialog>
 
       <CustomDialog

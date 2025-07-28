@@ -30,12 +30,17 @@ export const getDetailsUser = async (user_id: string) => {
 }
 
 export const getDetailsUserByIds = async (data: APIGetUsersByIds) => {
-    const response = await axiosAPI({
-        endpoint: `/auth/users/by-ids/`,
-        method: "POST",
-        withAuth: false,
-        data,
-    });
-
-    return response;
+    try {
+        const response = await axiosAPI({
+            endpoint: `/auth/users/by-ids/`,
+            method: "POST",
+            withAuth: false,
+            data,
+        });   
+        
+        return { success: true, data: response.data };
+    } catch (err) {
+        const error = err as Error;
+        return { success: false, error: error.message };
+    }    
 }
