@@ -18,27 +18,33 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { toast } from "sonner";
+import { logoutUser } from "@/lib/requests/auth";
 
 export default function Header() {
     const { data: session } = useSession() as SessionType;
 
     const handleLogout = async () => {
         try {
+            await logoutUser();
+
             await signOut({ 
                 callbackUrl: "/auth/login",
                 redirect: true 
             });
         } catch (error) {
-            toast.error("Erro no logout");
+            toast.error("Erro ao fazer logout.");
         }
     };
 
     return (
         <header className="py-5 flex items-center justify-between">
             <div className="flex gap-8 items-end max-w-[32rem] w-full">
-                <Image src={logoSVG} alt="Logo" />
-                <p className="text-xs text-[#848484]">Educação, Ciência, Cultura e Tecnologia em
-                    todo o Rio Grande do Norte</p>
+                <Link href="/" className="flex-shrink-0">
+                    <Image src={logoSVG} alt="Logo" className="w-full max-w-none" />
+                </Link>
+                <p className="text-xs text-[#848484]">
+                    Educação, Ciência, Cultura e Tecnologia em todo o Rio Grande do Norte
+                </p>
             </div>
 
             <div className="flex items-center gap-8">

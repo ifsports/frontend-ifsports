@@ -256,12 +256,12 @@ export default function HomePage(){
                       sistema de inscrição para escolher a modalidade e garantir sua
                       participação. Venha representar seu curso e faça parte da história!
                   </p>
-                  <a
-                      href="#"
+                  <Link
+                      href="/gerenciar-equipes"
                       className="px-6 py-4 border-0 bg-[#4CAF50] rounded-md font-bold text-white tracking-wider cursor-pointer no-underline ml-auto"
                   >
                       Cadastrar equipes
-                  </a>
+                  </Link>
               </div>
 
               <div className="p-10 border border-gray-100 rounded-md shadow-2xl flex justify-start flex-col">
