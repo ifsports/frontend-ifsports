@@ -1,16 +1,4 @@
-export interface Competition {
-    id: string;
-    name: string;
-    modality: string;
-    status?: 'league' | 'groups_elimination' | 'elimination';
-    start_date: string | null;
-    end_date: string | null;
-    system: string;
-    image: string;
-    min_members_per_team: number;
-    teams_per_group: number | null;
-    teams_qualified_per_group: number | null;
-}
+import type { Team } from "./team";
 
 export interface APIGetCompetitions {
     competitions: Competition[] | null;
@@ -47,4 +35,55 @@ export interface MatchTeam {
 export interface APIGetTeamInCompetition {
     team_id: string;
     competition: Competition;
+}
+
+export type CompetitionSystem = 'league' | 'groups_elimination' | 'elimination';
+export type CompetitionStatus = 'not-started' | 'in-progress' | 'finished';
+export type MatchStatus = 'not-started' | 'in-progress' | 'finished';
+
+export interface RoundData {
+  id: string;
+  name: string;
+  matches: Match[];
+}
+
+export interface TeamClassification {
+  id: string;
+  team: Team;
+  position: number;
+  points: number;
+  games_played: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  score_pro: number;
+  score_against: number;
+  score_difference: number;
+}
+
+export interface GroupData {
+  id: string;
+  name: string; // ex: "A", "B"
+  classifications: TeamClassification[];
+  rounds: RoundData[];
+}
+
+export interface Stage {
+  key: string;
+  name: string;
+}
+
+export interface Competition {
+  id: string;
+  name: string;
+  modality: Modality; 
+  status: CompetitionStatus;
+  start_date: string | null; 
+  end_date: string | null;
+  system: CompetitionSystem;
+  image: string; 
+  min_members_per_team: number;
+  teams_per_group: number | null;
+  teams_qualified_per_group: number | null;
+  stages?: Stage[];
 }

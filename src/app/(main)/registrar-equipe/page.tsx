@@ -137,7 +137,7 @@ export default function TeamRegistrationForm() {
   return (
     <div className="py-12">
       <div className="flex flex-col gap-3 mb-8">
-        <h1 className="text-4xl font-bold text-[#062601] leading-tight font-['Baloo_2']">
+        <h1 className="text-4xl font-bold text-[#062601] leading-tight font-title">
           Cadastrar nova equipe
         </h1>
         <p className="text-gray-600 text-base leading-relaxed max-w-2xl">
