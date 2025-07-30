@@ -8,7 +8,7 @@ export interface CustomDialogProps {
   className?: string;
 }
 
-export default function CustomDialog ({ open, onClose, title, children, className = "max-w-[42.438rem] w-full p-8 bg-[#F5F6FA] max-md:w-screen max-md:max-w-full max-md:m-0" }: CustomDialogProps){
+export default function CustomDialog({ open, onClose, title, children, className = "max-w-[42.438rem] w-full p-8 bg-[#F5F6FA] max-md:w-screen max-md:max-w-full max-md:m-0 max-h-[90vh] overflow-y-auto" }: CustomDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(openState) => !openState && onClose()}>
       <DialogContent className={className}>
@@ -23,4 +23,4 @@ export default function CustomDialog ({ open, onClose, title, children, classNam
       </DialogContent>
     </Dialog>
   );
-};
+}
