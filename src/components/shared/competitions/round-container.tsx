@@ -6,9 +6,10 @@ import MatchCard from "./match-card";
 
 interface RoundsContainerProps {
   rounds: RoundData[];
+  variant?: "student" | "organizer";
 }
 
-export default function RoundsContainer({ rounds }: RoundsContainerProps) {
+export default function RoundsContainer({ rounds, variant }: RoundsContainerProps) {
   const [currentRoundIndex, setCurrentRoundIndex] = useState(0);
 
   const handlePrevRound = () => {
@@ -72,7 +73,7 @@ export default function RoundsContainer({ rounds }: RoundsContainerProps) {
 
       <div className="flex flex-col gap-4 p-4">
         {currentRound.matches.map((match) => (
-          <MatchCard key={match.id} match={match} />
+          <MatchCard key={match.id} variant={variant} match={match} />
         ))}
       </div>
     </div>

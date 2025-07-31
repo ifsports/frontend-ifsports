@@ -1,7 +1,6 @@
 "use client";
 
 import type { RoundData, Match } from "@/types/competition";
-import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
 import type { Team } from "@/types/team";
 import KnockoutMatchCard from "./knockout-match-card";
@@ -9,9 +8,10 @@ import KnockoutMatchCard from "./knockout-match-card";
 interface KnockoutRoundViewProps {
   round: RoundData;
   teams: Team[];
+  variant?: "student" | "organizer";
 }
 
-export default function KnockoutRoundView({ round, teams }: KnockoutRoundViewProps) {
+export default function KnockoutRoundView({ round, teams, variant }: KnockoutRoundViewProps) {
   const getTeamById = (teamId: string): Team | undefined => {
     return teams.find(team => team.id === teamId);
   };
@@ -39,7 +39,7 @@ export default function KnockoutRoundView({ round, teams }: KnockoutRoundViewPro
     const awayTeam = match.team_away ? getTeamById(match.team_away.team_id) : undefined;
     return (
       <div className="w-full max-w-md mx-auto">
-        <KnockoutMatchCard match={match} homeTeam={homeTeam} awayTeam={awayTeam} />
+        <KnockoutMatchCard variant={variant} match={match} homeTeam={homeTeam} awayTeam={awayTeam} />
       </div>
     );
   }
@@ -49,11 +49,11 @@ export default function KnockoutRoundView({ round, teams }: KnockoutRoundViewPro
   return (
     <div className="flex flex-col gap-4">
       {rows.map((row, rowIndex) => (
-        <div key={rowIndex} className="w-full flex flex-col lg:flex-row gap-4">
+        <div key={rowIndex} className="w-full flex flex-col gap-4">
           {row.map((match) => {
             const homeTeam = match.team_home ? getTeamById(match.team_home.team_id) : undefined;
             const awayTeam = match.team_away ? getTeamById(match.team_away.team_id) : undefined;
-            return <KnockoutMatchCard key={match.id} match={match} homeTeam={homeTeam} awayTeam={awayTeam} />;
+            return <KnockoutMatchCard variant={variant} key={match.id} match={match} homeTeam={homeTeam} awayTeam={awayTeam} />;
           })}
         </div>
       ))}
