@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from 'react';
-import { Trophy, Bell, Menu, X, Volleyball, LogOut, Calendar } from 'lucide-react';
+import { Trophy, Bell, Menu, X, Volleyball, LogOut, Calendar, Users } from 'lucide-react';
 import Image from 'next/image';
 
 import logoIfsports from "@/assets/ifsports-logo.png"
@@ -28,6 +28,12 @@ export default function OrganizerLayout({ children }: OrganizerLayoutProps) {
       icon: Trophy,
       label: 'Competições',
       path: '/organizador/competicoes'
+    },
+    {
+      href: '/organizador/equipes',
+      icon: Users,
+      label: 'Equipes',
+      path: '/organizador/equipes'
     },
     {
       href: '/organizador/partidas',
