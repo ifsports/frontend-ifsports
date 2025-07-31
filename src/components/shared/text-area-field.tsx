@@ -7,6 +7,7 @@ export interface TextAreaFieldProps {
   value?: string;
   onChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void;
   className?: string;
+  disabled?: boolean;
 }
 
 export default function TextAreaField({ id, label, placeholder, value, onChange, className = "py-5 px-4 pb-24 border-0 rounded-md bg-white resize-none", ...rest }: TextAreaFieldProps) {
