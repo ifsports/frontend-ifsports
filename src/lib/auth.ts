@@ -113,27 +113,25 @@ const authOptions = {
             }
 
             if (customToken.accessTokenExpires && Date.now() > customToken.accessTokenExpires) {
-                return {}; 
+                return { ...token };
             }
 
             return token;
         },
         async session({ session, token }) {
-            if (!token || !token.accessToken) {
-                return null;
-            }
-
             const customSession = session as CustomSession;
             const customToken = token as CustomJWT;
 
-            customSession.accessToken = customToken.accessToken;
-            customSession.user.id = customToken.id;
-            customSession.user.name = customToken.name;
-            customSession.user.email = customToken.email;
-            customSession.user.image = customToken.image;
+            customSession.accessToken = customToken.accessToken ?? undefined;
+            customSession.refreshToken = customToken.refreshToken ?? undefined;
+            customSession.provider = customToken.provider ?? undefined;
+            customSession.user.id = customToken.id ?? '';
+            customSession.user.name = customToken.name ?? null;
+            customSession.user.email = customToken.email ?? null;
+            customSession.user.image = customToken.image ?? null;
 
             return customSession;
-        },
+        }
     },
     pages: {
         signIn: '/auth/login'
