@@ -23,6 +23,7 @@ import CompetitionCard from '../shared/competition-card';
 import { useMatchesToday } from '@/hooks/useMatches';
 import { useTeams } from '@/hooks/useTeams';
 import dayjs from "dayjs";
+import { useCampusCode } from '@/hooks/useCampusCode';
 
 export default function HomePage(){
   const [campus, setCampus] = useState("");
@@ -30,6 +31,15 @@ export default function HomePage(){
   const [isCampusSelected, setIsCampusSelected] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
+
+  const campusSelect = useCampusCode();
+
+    useEffect(() => {
+        if (!campusSelect) return;
+        setCampus(campusSelect);
+        setSelectedCampus(campusSelect);
+        setIsCampusSelected(true);
+    }, [campusSelect])
 
   const {data: competitions, isLoading: isLoadingCompetitions} = useCompetitions(isCampusSelected, selectedCampus);
 
@@ -144,6 +154,7 @@ export default function HomePage(){
                     <CompetitionsFilter 
                       label="o campus" 
                       data={campusData}
+                      value={campus}
                       onChange={(value) => {
                         setCampus(value);
                         setIsCampusSelected(false);
@@ -184,8 +195,13 @@ export default function HomePage(){
                             {isLoadingCompetitions ? (
                                 <span className="text-gray-500">Carregando competições...</span>
                             ) : (
-                                <span className="text-gray-500">Nenhuma competição encontrada.</span>
-                            )}
+                               campus && selectedCampus && isCampusSelected ? (
+                                    <span className="text-gray-500">Nenhuma competição encontrada.</span>
+                                ) : (
+                                    <span className="text-gray-500">Selecione um campus...</span>
+                                )
+                            )
+                            }
                         </div>
                     )}
                   </CarouselContent>
