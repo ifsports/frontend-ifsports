@@ -1,10 +1,10 @@
 import type { APIGetTeamsFromCampus, CreateTeamPayload } from "@/types/team";
 import { axiosAPI } from "../axios-api";
-import type { CreateTeamFormData } from "../schemas/team-schema";
 
-export const getTeamFromCampusAuth = async () => {
+export const getTeamFromCampusAuth = async (status: { status: string }) => {
     const result = await axiosAPI<APIGetTeamsFromCampus>({
         endpoint: `/teams/`,
+        queryParams: status
     })
 
     return result;

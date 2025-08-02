@@ -114,7 +114,7 @@ export default function TeamManagement() {
   }
 
   async function getTeams() {
-      const response = await getTeamFromCampusAuth();
+      const response = await getTeamFromCampusAuth({ status: "active" });
       
       if (!response.data || !Array.isArray(response.data)) {
         toast.error('Dados inválidos recebidos ao buscar equipes.');
