@@ -66,7 +66,7 @@ export default function OrganizerLayout({ children }: OrganizerLayoutProps) {
       await logoutUser();
 
       await signOut({ 
-          callbackUrl: "/auth/login",
+          callbackUrl: "/",
           redirect: true 
       });
     } catch (error: any) {

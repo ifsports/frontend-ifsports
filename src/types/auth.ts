@@ -8,4 +8,5 @@ export interface APISignIn {
 export interface SessionType {
     data: Session | null;
     status?: string;
+    role?: string;
 }

@@ -9,10 +9,9 @@ import {toast} from "sonner";
 import loginImg from "@/assets/login.png";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import {SessionType} from "@/types/auth";
 
 export default function LoginPage() {
-    const { data: session, status } = useSession() as SessionType;
+    const { data: session, status } = useSession();
     const router = useRouter();
     const searchParams = useSearchParams();
     const callbackUrl = searchParams.get('callbackUrl') || '/';
@@ -23,9 +22,59 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<Partial<SignInData>>({});
 
+    const redirectBasedOnRole = (userRole: string, fallbackUrl: string = '/') => {
+        switch (userRole) {
+            case 'Organizador':
+                if (fallbackUrl.startsWith('/organizador/')) {
+                    router.push(fallbackUrl);
+                } else {
+                    router.push('/organizador/modalidades');
+                }
+                break;
+            case 'Jogador':
+                if (fallbackUrl.startsWith('/gerenciar-equipes') || fallbackUrl.startsWith('/registrar-equipe')) {
+                    router.push(fallbackUrl);
+                } else {
+                    router.push('/');
+                }
+                break;
+            default:
+                router.push(fallbackUrl);
+        }
+    };
+
     useEffect(() => {
-        if (session) {
-            router.push(callbackUrl);
+        console.log("Session no useEffect:", session); 
+        if (session?.user) {
+            if (session.user.role) {
+                console.log("Role encontrada na sessão:", session.user.role); 
+                redirectBasedOnRole(session.user.role, callbackUrl);
+            } else {
+                if (session.accessToken) {
+                    try {
+                        const jwt = require('jsonwebtoken');
+                        const decodedToken = jwt.decode(session.accessToken);
+
+                        let userRole;
+                        
+                        if (decodedToken?.groups && Array.isArray(decodedToken.groups) && decodedToken.groups.length > 0) {
+                            userRole = decodedToken.groups[0]; 
+                        } else {
+                            userRole = decodedToken?.role || decodedToken?.cargo;
+                        }
+                        
+                        if (userRole) {
+                            redirectBasedOnRole(userRole, callbackUrl);
+                        } else {
+                            router.push(callbackUrl);
+                        }
+                    } catch (error) {
+                        router.push(callbackUrl);
+                    }
+                } else {
+                    router.push(callbackUrl);
+                }
+            }
         }
     }, [session, callbackUrl, router]);
 
@@ -47,7 +96,6 @@ export default function LoginPage() {
                 toast(result.error)
             } else if (result?.ok) {
                 toast("Autenticado com sucesso!")
-                router.push(callbackUrl);
             } else {
                 toast("Erro inesperado durante o login");
             }

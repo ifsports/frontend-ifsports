@@ -28,7 +28,7 @@ export default function Header() {
             await logoutUser();
 
             await signOut({ 
-                callbackUrl: "/auth/login",
+                callbackUrl: "/",
                 redirect: true 
             });
         } catch (error: any) {

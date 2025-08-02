@@ -10,6 +10,7 @@ interface CustomUser extends NextAuthUser {
     refreshToken?: string;
     provider?: string;
     campus?: string;
+    role?: string;
 }
 
 interface CustomJWT extends NextAuthJWT {
@@ -21,6 +22,7 @@ interface CustomJWT extends NextAuthJWT {
     email?: string | null;
     image?: string | null;
     campus?: string;
+    role?: string;
     accessTokenExpires?: number;
 }
 
@@ -34,12 +36,12 @@ export interface CustomSession extends Session {
         email?: string | null;
         image?: string | null;
         campus?: string;
+        role?: string;
     };
 }
 
 export function decodeAccessToken(accessToken: string) {
     try {
-        // Decodifica sem verificar a assinatura (só para ler os dados)
         const decoded = jwt.decode(accessToken) as any;
         return decoded;
     } catch (error) {
@@ -70,7 +72,6 @@ const authOptions = {
                     const response = await signIn(credentials);
 
                     if (response.data && response.data.access_token) {
-                        // DECODIFICAR O ACCESS TOKEN AQUI
                         const decodedToken = decodeAccessToken(response.data.access_token);
                         
                         return {
@@ -102,7 +103,6 @@ const authOptions = {
             },
             async authorize(credentials) {
                 if (credentials?.token && credentials?.userId) {
-                    // DECODIFICAR O TOKEN SUAP TAMBÉM
                     const decodedToken = decodeAccessToken(credentials.token);
                     
                     return {
@@ -112,7 +112,7 @@ const authOptions = {
                         name: credentials.userName,
                         email: credentials.userEmail,
                         image: credentials.userImage,
-                        campus: decodedToken?.campus, // Extrair do token
+                        campus: decodedToken?.campus, 
                     } as CustomUser;
                 }
                 return null;
@@ -136,7 +136,7 @@ const authOptions = {
                     name: customUser.name,
                     email: customUser.email,
                     image: customUser.image,
-                    campus: customUser.campus, // ADICIONAR AQUI
+                    campus: customUser.campus, 
                 };
             }
 
@@ -157,11 +157,49 @@ const authOptions = {
             customSession.user.name = customToken.name ?? null;
             customSession.user.email = customToken.email ?? null;
             customSession.user.image = customToken.image ?? null;
-            customSession.user.campus = customToken.campus ?? undefined; // ADICIONAR AQUI
+            customSession.user.campus = customToken.campus ?? undefined;
 
             return customSession;
+        },
+        async redirect({ url, baseUrl, token }) {
+            if (url.includes('/api/auth/signout')) {
+                return baseUrl;
+            }
+            
+            if (url.includes('/api/auth/signin') || url === baseUrl) {
+                let userRole = null;
+                
+                if (token?.accessToken) {
+                    try {
+                        const decodedToken = decodeAccessToken(token.accessToken as string);
+                        userRole = decodedToken?.role || decodedToken?.cargo;
+                    } catch (error) {
+                        console.error("Erro ao decodificar token no redirect:", error);
+                    }
+                }
+                
+                switch (userRole) {
+                    case 'Organizador':
+                        return `${baseUrl}/organizador/modalidades`;
+                    case 'Jogador':
+                        return `${baseUrl}/`;
+                    default:
+                        return baseUrl;
+                }
+            }
+            
+            if (url.startsWith('/')) {
+                return `${baseUrl}${url}`;
+            }
+            
+            if (new URL(url).origin === baseUrl) {
+                return url;
+            }
+            
+            return baseUrl;
         }
     },
+    
     pages: {
         signIn: '/auth/login'
     },
