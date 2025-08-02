@@ -4,9 +4,10 @@ import Link from "next/link";
 
 interface CompetitionCardProps {
   competition: Competition;
+  campusId: string;
 }
 
-export default function CompetitionCard({ competition }: CompetitionCardProps) {
+export default function CompetitionCard({ competition, campusId }: CompetitionCardProps) {
   return (
     <div
         className="w-full h-96 p-6 rounded shadow-xl flex flex-col justify-between items-start gap-6 bg-white"
@@ -31,7 +32,7 @@ export default function CompetitionCard({ competition }: CompetitionCardProps) {
                 Acesse a página com todas as informações sobre o {competition.name.toLowerCase()}, incluindo equipes participantes, horários dos jogos e resultados atualizados.
             </p>
         </div>
-        <Link href="" className="ml-auto border-0 px-8 py-2 text-white text-sm font-bold bg-[#4CAF50] rounded cursor-pointer tracking-wider">
+        <Link href={`/competicao/${competition.id}/campus/${campusId}`} className="ml-auto border-0 px-8 py-2 text-white text-sm font-bold bg-[#4CAF50] rounded cursor-pointer tracking-wider">
             Acessar
         </Link>
         

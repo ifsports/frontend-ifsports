@@ -1,333 +1,377 @@
 "use client";
 
-import type { Competition, GroupData, RoundData } from '@/types/competition';
+import type { Competition, GroupData, RoundData, CompetitionTeam, PaginatedResponse, Match, TeamClassification } from '@/types/competition';
 import GroupStageCompetition from '../shared/competitions/group-stage';
 import KnockoutCompetition from '../shared/competitions/knockout-competition';
 import PointsCompetition from '../shared/competitions/points-competition';
-import type { Team, TeamMember } from '@/types/team';
+import type { Team } from '@/types/team';
 import { populateCompetitionStages } from '@/utils/competitions';
+import { 
+  getCompetitionTeams, 
+  getDetailsCompetition, 
+  getCompetitionMatches, 
+  getCompetitionStandings 
+} from '@/lib/requests/competitions';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { getTeamFromCampusNoAuth } from '@/lib/requests/teams';
 
 interface CompetitionPageProps {
   competitionId: string;
+  campusId: string;
 }
 
-const apiCompetitionData: Competition = {
-  id: "c1a2b3c4-d5e6-f7g8-h9i0-j1k2l3m4n5o6",
-  name: "Futsal Masculino",
-  modality: { id: "7d8e3664-e43f-4532-a7b6-5a11b4a2608e", name: "Futsal", campus: "IFG" },
-  status: 'in-progress',
-  start_date: "2025-07-29",
-  end_date: "2025-08-15",
-  system: 'groups_elimination',
-  image: "/media/competitions/basquete.png",
-  min_members_per_team: 1,
-  teams_per_group: 4,
-  teams_qualified_per_group: 2
+const generateEliminationRoundNames = (totalRounds: number): string[] => {
+  const names: string[] = [];
+  
+  const phaseNames: Record<number, string[]> = {
+    1: ['Final'],
+    2: ['Semifinal', 'Final'],
+    3: ['Quartas de Final', 'Semifinal', 'Final'],
+    4: ['Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
+    5: ['1ª Fase', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
+    6: ['2ª Fase', '1ª Fase', 'Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Final'],
+  };
+
+  if (phaseNames[totalRounds]) {
+    return phaseNames[totalRounds];
+  }
+
+  for (let i = 0; i < totalRounds - 4; i++) {
+    names.push(`${totalRounds - i}ª Fase`);
+  }
+  names.push('Quartas de Final', 'Semifinal', 'Final');
+
+  return names;
 };
 
-const teamMembers: TeamMember[] = [
-  { user_id: "uuid-member" },
-  { user_id: "outro-uuid" }
-];
+export default function CompetitionPage({ competitionId, campusId }: CompetitionPageProps) {
+  const [competition, setCompetition] = useState<Competition>();
+  const [competitionTeams, setCompetitionTeams] = useState<CompetitionTeam[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [rounds, setRounds] = useState<RoundData[]>([]);
+  const [standings, setStandings] = useState<any>([]);
+  const [loading, setLoading] = useState(true);
 
-const teamFalcons: Team = { id: "team-falcons-id", name: "Falcons", abbreviation: "FAL", created_at: "2025-07-29 10:30:00.123456", status: "active", campus_code: "PF", members: teamMembers };
-const teamEagles: Team = { id: "team-eagles-id", name: "Eagles", abbreviation: "EAG", created_at: "2025-07-29 10:30:00.123456", status: "active", campus_code: "PF", members: teamMembers  };
-const teamLions: Team = { id: "team-lions-id", name: "Lions", abbreviation: "LIO", created_at: "2025-07-29 10:30:00.123456", status: "active", campus_code: "PF", members: teamMembers  };
-const teamTigers: Team = { id: "team-tigers-id", name: "Tigers", abbreviation: "TIG", created_at: "2025-07-29 10:30:00.123456", status: "active", campus_code: "PF", members: teamMembers  };
-const teamInformatica: Team = { id: "team-info-id", name: "INFORMÁTICA", abbreviation: "INF", created_at: "2025-07-29 10:30:00.123456", status: "active", campus_code: "PF", members: teamMembers  };
-const teamAds: Team = { id: "team-ads-id", name: "ADS FC", abbreviation: "ADS", created_at: "2025-07-29 10:30:00.123456", status: "active", campus_code: "PF", members: teamMembers  };
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        
+        const compResult = await getDetailsCompetition(competitionId);
+        if (!compResult.success) {
+          throw new Error(compResult.error);
+        }
+        setCompetition(compResult.data);
 
-const teamPanthers: Team = { id: "team-panthers-id", name: "Panthers", abbreviation: "PAN", created_at: "2025-07-29 10:30:00.123456", status: "active", campus_code: "PF", members: teamMembers  };
-const teamWolves: Team = { id: "team-wolves-id", name: "Wolves", abbreviation: "WOL", created_at: "2025-07-29 10:30:00.123456", status: "active", campus_code: "PF", members: teamMembers  };
-const teamBears: Team = { id: "team-bears-id", name: "Bears", abbreviation: "BEA", created_at: "2025-07-29 10:30:00.123456", status: "active", campus_code: "PF", members: teamMembers  };
-const teamSharks: Team = { id: "team-sharks-id", name: "Sharks", abbreviation: "SHA", created_at: "2025-07-29 10:30:00.123456", status: "active", campus_code: "PF", members: teamMembers  };
+        const teamsResult = await getCompetitionTeams(competitionId);
+        if (!teamsResult.success || !teamsResult.data) {
+          throw new Error(teamsResult.error || 'Erro ao buscar equipes');
+        }
+        setCompetitionTeams(teamsResult.data);
+        
+        const campusTeamsResult = await getTeamFromCampusNoAuth({ campus: campusId });
+        if (!campusTeamsResult || !Array.isArray(campusTeamsResult.data)) {
+          toast.error("Nenhuma equipe encontrada para o campus selecionado.");
+          throw new Error("Dados de equipes não encontrados");
+        }
+        
+        const competitionTeamIds = teamsResult.data.map((ct: CompetitionTeam) => ct.team_id);
+        const competitionTeamsData = campusTeamsResult.data.filter((team: Team) => 
+          competitionTeamIds.includes(team.id)
+        );
+        
+        setTeams(competitionTeamsData);
 
-const groupsData: GroupData[] = [
-  {
-    id: "group-a-id",
-    name: "A",
-    classifications: [
-      { id: "class-falcons-id", team: teamFalcons, position: 1, points: 9, games_played: 3, wins: 3, draws: 0, losses: 0, score_pro: 8, score_against: 2, score_difference: 6 },
-      { id: "class-eagles-id", team: teamEagles, position: 2, points: 4, games_played: 3, wins: 1, draws: 1, losses: 1, score_pro: 4, score_against: 4, score_difference: 0 },
-      { id: "class-informatica-id", team: teamInformatica, position: 3, points: 2, games_played: 3, wins: 0, draws: 2, losses: 1, score_pro: 4, score_against: 7, score_difference: -3 },
-      { id: "class-ads-id", team: teamAds, position: 4, points: 1, games_played: 3, wins: 0, draws: 1, losses: 2, score_pro: 2, score_against: 6, score_difference: -4 },
-    ],
-    rounds: [
-      {
-        id: "group-a-round-1-id",
-        name: "1ª Rodada",
-        matches: [
-          {
-            id: "match-a11-id",
-            competition: apiCompetitionData.id,
-            status: "finished",
-            scheduled_datetime: "2025-07-22T19:00:00Z",
-            team_home: { team_id: teamInformatica.id, competition: apiCompetitionData.id },
-            team_away: { team_id: teamAds.id, competition: apiCompetitionData.id },
-            score_home: 2,
-            score_away: 2,
-            winner: null,
-            round_match_number: 1
-          },
-          {
-            id: "match-a12-id",
-            competition: apiCompetitionData.id,
-            status: "finished",
-            scheduled_datetime: "2025-07-22T20:30:00Z",
-            team_home: { team_id: teamFalcons.id, competition: apiCompetitionData.id },
-            team_away: { team_id: teamEagles.id, competition: apiCompetitionData.id },
-            score_home: 3,
-            score_away: 1,
-            winner: teamFalcons.id,
-            round_match_number: 2
-          },
-        ],
-      },
-      {
-        id: "group-a-round-2-id",
-        name: "2ª Rodada",
-        matches: [
-          {
-            id: "match-a21-id",
-            competition: apiCompetitionData.id,
-            status: "finished",
-            scheduled_datetime: "2025-07-25T19:00:00Z",
-            team_home: { team_id: teamAds.id, competition: apiCompetitionData.id },
-            team_away: { team_id: teamFalcons.id, competition: apiCompetitionData.id },
-            score_home: 0,
-            score_away: 2,
-            winner: teamFalcons.id,
-            round_match_number: 1
-          },
-          {
-            id: "match-a22-id",
-            competition: apiCompetitionData.id,
-            status: "finished",
-            scheduled_datetime: "2025-07-25T20:30:00Z",
-            team_home: { team_id: teamInformatica.id, competition: apiCompetitionData.id },
-            team_away: { team_id: teamEagles.id, competition: apiCompetitionData.id },
-            score_home: 1,
-            score_away: 1,
-            winner: null,
-            round_match_number: 2
-          },
-        ],
-      },
-      {
-        id: "group-a-round-3-id",
-        name: "3ª Rodada",
-        matches: [
-          {
-            id: "match-a31-id",
-            competition: apiCompetitionData.id,
-            status: "finished",
-            scheduled_datetime: "2025-07-28T19:00:00Z",
-            team_home: { team_id: teamEagles.id, competition: apiCompetitionData.id },
-            team_away: { team_id: teamAds.id, competition: apiCompetitionData.id },
-            score_home: 2,
-            score_away: 0,
-            winner: teamEagles.id,
-            round_match_number: 1
-          },
-          {
-            id: "match-a32-id",
-            competition: apiCompetitionData.id,
-            status: "finished",
-            scheduled_datetime: "2025-07-28T20:30:00Z",
-            team_home: { team_id: teamFalcons.id, competition: apiCompetitionData.id },
-            team_away: { team_id: teamInformatica.id, competition: apiCompetitionData.id },
-            score_home: 4,
-            score_away: 1,
-            winner: teamFalcons.id,
-            round_match_number: 2
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "group-b-id",
-    name: "B",
-    classifications: [
-      { id: "class-panthers-id", team: teamPanthers, position: 1, points: 7, games_played: 3, wins: 2, draws: 1, losses: 0, score_pro: 6, score_against: 4, score_difference: 2 },
-      { id: "class-bears-id", team: teamBears, position: 2, points: 4, games_played: 3, wins: 1, draws: 1, losses: 1, score_pro: 3, score_against: 3, score_difference: 0 },
-      { id: "class-wolves-id", team: teamWolves, position: 3, points: 3, games_played: 3, wins: 0, draws: 3, losses: 0, score_pro: 4, score_against: 4, score_difference: 0 },
-      { id: "class-sharks-id", team: teamSharks, position: 4, points: 1, games_played: 3, wins: 0, draws: 1, losses: 2, score_pro: 2, score_against: 4, score_difference: -2 },
-    ],
-    rounds: [
-      {
-        id: "group-b-round-1-id",
-        name: "1ª Rodada",
-        matches: [
-          {
-            id: "match-b11-id",
-            competition: apiCompetitionData.id,
-            status: "finished",
-            scheduled_datetime: "2025-07-23T19:00:00Z",
-            team_home: { team_id: teamPanthers.id, competition: apiCompetitionData.id },
-            team_away: { team_id: teamSharks.id, competition: apiCompetitionData.id },
-            score_home: 2,
-            score_away: 1,
-            winner: teamPanthers.id,
-            round_match_number: 1
-          },
-          {
-            id: "match-b12-id",
-            competition: apiCompetitionData.id,
-            status: "finished",
-            scheduled_datetime: "2025-07-23T20:30:00Z",
-            team_home: { team_id: teamWolves.id, competition: apiCompetitionData.id },
-            team_away: { team_id: teamBears.id, competition: apiCompetitionData.id },
-            score_home: 1,
-            score_away: 1,
-            winner: null,
-            round_match_number: 2
-          },
-        ],
-      },
-      {
-        id: "group-b-round-2-id",
-        name: "2ª Rodada",
-        matches: [
-          {
-            id: "match-b21-id",
-            competition: apiCompetitionData.id,
-            status: "finished",
-            scheduled_datetime: "2025-07-26T19:00:00Z",
-            team_home: { team_id: teamBears.id, competition: apiCompetitionData.id },
-            team_away: { team_id: teamPanthers.id, competition: apiCompetitionData.id },
-            score_home: 1,
-            score_away: 2,
-            winner: teamPanthers.id,
-            round_match_number: 1
-          },
-          {
-            id: "match-b22-id",
-            competition: apiCompetitionData.id,
-            status: "finished",
-            scheduled_datetime: "2025-07-26T20:30:00Z",
-            team_home: { team_id: teamSharks.id, competition: apiCompetitionData.id },
-            team_away: { team_id: teamWolves.id, competition: apiCompetitionData.id },
-            score_home: 1,
-            score_away: 1,
-            winner: null,
-            round_match_number: 2
-          },
-        ],
-      },
-      {
-        id: "group-b-round-3-id",
-        name: "3ª Rodada",
-        matches: [
-          {
-            id: "match-b31-id",
-            competition: apiCompetitionData.id,
-            status: "finished",
-            scheduled_datetime: "2025-07-29T19:00:00Z",
-            team_home: { team_id: teamWolves.id, competition: apiCompetitionData.id },
-            team_away: { team_id: teamPanthers.id, competition: apiCompetitionData.id },
-            score_home: 2,
-            score_away: 2,
-            winner: null,
-            round_match_number: 1
-          },
-          {
-            id: "match-b32-id",
-            competition: apiCompetitionData.id,
-            status: "finished",
-            scheduled_datetime: "2025-07-29T20:30:00Z",
-            team_home: { team_id: teamSharks.id, competition: apiCompetitionData.id },
-            team_away: { team_id: teamBears.id, competition: apiCompetitionData.id },
-            score_home: 0,
-            score_away: 1,
-            winner: teamBears.id,
-            round_match_number: 2
-          },
-        ],
-      },
-    ],
-  },
-];
+        const matchesResult = await getCompetitionMatches(competitionId);
+        if (matchesResult.success && matchesResult.data) {
+          const matches: Match[] = matchesResult.data.results;
+          const roundsMap: Record<string, Match[]> = {};
 
-const competitionData = populateCompetitionStages(apiCompetitionData, { 
-  numberOfGroups: groupsData.length 
-});
+          matches.forEach((match) => {
+            const roundId = match.round || 'rodada-desconhecida';
+            if (!roundsMap[roundId]) {
+              roundsMap[roundId] = [];
+            }
+            roundsMap[roundId].push(match);
+          });
 
-export default function CompetitionPage({ competitionId }: CompetitionPageProps) {
-  const allTeams = Array.from(
-    new Map(
-      groupsData.flatMap(group => 
-        group.classifications.map(c => [c.team.id, c.team])
-      )
-    ).values()
-  );
+          const roundsData: RoundData[] = Object.entries(roundsMap).map(([roundId, matches], index) => {
+            let roundName = `Rodada ${index + 1}`;
+            
+            if (compResult.success && compResult.data && compResult.data.system === 'elimination') {
+              const totalRounds = Object.keys(roundsMap).length;
+              const eliminationNames = generateEliminationRoundNames(totalRounds);
+              roundName = eliminationNames[index] || `${totalRounds - index}ª Fase`;
+            }
 
-  const knockoutRoundsData: RoundData[] = [
-    {
-      id: "semifinal-id",
-      name: "SEMIFINAL",
-      matches: [
-        {
-          id: "sf-match-1",
-          competition: competitionData.id,
-          status: 'not-started',
-          scheduled_datetime: "2025-08-02T19:00:00Z",
-          team_home: { team_id: teamFalcons.id, competition: competitionData.id },
-          team_away: { team_id: teamBears.id, competition: competitionData.id },
-          round_match_number: 1
-        },
-        {
-          id: "sf-match-2",
-          competition: competitionData.id,
-          status: 'not-started',
-          scheduled_datetime: "2025-08-02T20:30:00Z",
-          team_home: { team_id: teamPanthers.id, competition: competitionData.id },
-          team_away: { team_id: teamEagles.id, competition: competitionData.id },
-          round_match_number: 2
-        },
-      ]
-    },
-    {
-      id: "final-id",
-      name: "FINAL",
-      matches: [
-        {
-          id: "final-match-1",
-          competition: competitionData.id,
-          status: 'not-started',
-          scheduled_datetime: "2025-08-10T10:00:00Z",
-          team_home: null,
-          team_away: null,
-          home_feeder_match: "sf-match-1",
-          away_feeder_match: "sf-match-2",
-          round_match_number: 1
-        },
-      ]
+            return {
+              id: roundId,
+              name: roundName,
+              matches,
+            };
+          });
+
+          setRounds(roundsData);
+
+          const teamIds = competitionTeamsData.map(team => team.id);
+
+          let matchesWithUnknownTeams = 0;
+          roundsData.forEach(round => {
+            round.matches?.forEach(match => {
+              const homeTeamId = match.team_home?.team_id;
+              const awayTeamId = match.team_away?.team_id;
+              
+              if (!teamIds.includes(homeTeamId) || !teamIds.includes(awayTeamId)) {
+                matchesWithUnknownTeams++;
+              }
+            });
+          });
+
+        } else {
+          setRounds([]);
+        }
+
+        const standingsResult = await getCompetitionStandings(competitionId);
+        if (standingsResult.success && standingsResult.data) {
+          setStandings(standingsResult.data);
+        } else {
+          setStandings([]);
+        }
+
+      } catch (err) {
+        toast.error("Erro ao buscar dados da competição");
+      } finally {
+        setLoading(false);
+      }
     }
-  ];
+    
+    fetchData();
+  }, [competitionId, campusId]);
+
+  const groupsData: GroupData[] = useMemo(() => {
+    if (!competition || !teams) {
+      return [];
+    }
+
+    const teamsPerGroup = competition.teams_per_group || 2;
+    const totalTeams = teams.length;
+    const numberOfGroups = Math.ceil(totalTeams / teamsPerGroup);
+
+    const createEmptyClassification = (team: Team, position: number): TeamClassification => ({
+      id: `${team.id}`,
+      team,
+      position,
+      games_played: 0,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      score_pro: 0,
+      score_against: 0,
+      score_difference: 0,
+      points: 0,
+    });
+
+    if (competition.system === 'league') {
+      return [
+        {
+          id: 'league',
+          name: 'Tabela Geral',
+          classifications: standings,
+          rounds,
+        },
+      ];
+    }
+
+    if (competition.system === 'groups_elimination') {
+      
+      if (competition.status === 'not-started') {
+        const generatedGroups: GroupData[] = [];
+
+        for (let i = 0; i < numberOfGroups; i++) {
+          const groupName = String.fromCharCode(65 + i); 
+          const groupTeams = teams.slice(i * teamsPerGroup, (i + 1) * teamsPerGroup);
+
+          const classifications = groupTeams.map((team, idx) =>
+            createEmptyClassification(team, idx + 1)
+          );
+
+          const groupRounds = rounds.filter(round => {
+            if (round.matches && round.matches.length > 0) {
+              const teamIds = groupTeams.map(t => t.id);
+             return round.matches.some(match => {
+                const homeTeamId = match.team_home?.team_id;
+                const awayTeamId = match.team_away?.team_id;
+                
+                return (homeTeamId && teamIds.includes(homeTeamId)) ||
+                      (awayTeamId && teamIds.includes(awayTeamId));
+              });
+            }
+            return false;
+          });
+
+          generatedGroups.push({
+            id: `group-${groupName.toLowerCase()}`,
+            name: `Grupo ${groupName}`,
+            classifications,
+            rounds: groupRounds,
+          });
+        }
+
+        return generatedGroups;
+      }
+      
+      const allGroupIds = new Set<string>();
+      rounds.forEach(round => {
+        round.matches?.forEach(match => {
+          if (match.group) {
+            allGroupIds.add(match.group);
+          }
+        });
+      });
+
+      function getGroupId(standing: any, fallbackId: string): string {
+        return standing?.group?.id || standing?.group_id || standing?.group || fallbackId;
+      }
+
+      const groupedStandings = standings.reduce((acc: Record<string, TeamClassification[]>, standing: TeamClassification) => {
+        const groupId = getGroupId(standing, Array.from(allGroupIds)[0]);
+        
+        if (groupId && !acc[groupId]) acc[groupId] = [];
+        if (groupId) acc[groupId].push(standing);
+        return acc;
+      }, {});
+
+      const groupedRounds = rounds.reduce((acc: Record<string, RoundData[]>, round) => {
+        const roundsByGroup: Record<string, Match[]> = {};
+        
+        round.matches?.forEach(match => {
+          const groupId = match.group;
+          
+          if (groupId) {
+            if (!roundsByGroup[groupId]) {
+              roundsByGroup[groupId] = [];
+            }
+            roundsByGroup[groupId].push(match);
+          }
+        });
+
+        Object.entries(roundsByGroup).forEach(([groupId, matches]) => {
+          if (!acc[groupId]) acc[groupId] = [];
+          
+          acc[groupId].push({
+            id: `${round.id}-${groupId}`,
+            name: round.name,
+            matches: matches
+          });
+        });
+
+        return acc;
+      }, {});
+
+      const allFoundGroupIds = new Set([
+        ...Object.keys(groupedStandings),
+        ...Object.keys(groupedRounds),
+        ...Array.from(allGroupIds)
+      ]);
+
+      const result = Array.from(allFoundGroupIds).map((groupId, index) => {
+        const groupLetter = String.fromCharCode(65 + index);
+        
+        return {
+          id: `group-${groupLetter.toLowerCase()}`,
+          name: `Grupo ${groupLetter}`,
+          classifications: groupedStandings[groupId] || [],
+          rounds: groupedRounds[groupId] || [],
+        };
+      });
+
+      return result;
+    }
+
+    if (competition.system === 'elimination') {
+      return [
+        {
+          id: 'elimination',
+          name: 'Chaveamento',
+          classifications: [],
+          rounds,
+        },
+      ];
+    }
+
+    return [];
+  }, [competition, standings, rounds, teams]);
+
+  const knockoutRoundsData: RoundData[] = useMemo(() => {
+    if (!competition || competition.system !== 'elimination') return [];
+    
+    return rounds.map(round => ({
+      ...round,
+      matches: round.matches || []
+    }));
+  }, [competition, rounds]);
+
+  const competitionData = useMemo(() => {
+    if (!competition) return undefined;
+
+    return populateCompetitionStages(competition, {
+      numberOfGroups: groupsData.length,
+    });
+  }, [competition, groupsData]);
 
   const renderCompetitionType = () => {
+    if (!competitionData) return null;
+
     switch (competitionData.system) {
       case "groups_elimination":
         return (
           <GroupStageCompetition 
             competition={competitionData} 
             groups={groupsData}
-            teams={allTeams} 
+            teams={teams} 
             knockoutRounds={knockoutRoundsData}
           />
         );
 
       case "elimination":
-        return <KnockoutCompetition competition={competitionData} teams={allTeams} rounds={knockoutRoundsData} />;
+        return (
+          <KnockoutCompetition 
+            competition={competitionData} 
+            teams={teams} 
+            rounds={knockoutRoundsData} 
+          />
+        );
       
       case "league":
-        return <PointsCompetition competition={competitionData} groups={groupsData}  />;
+        return (
+          <PointsCompetition 
+            competition={competitionData} 
+            groups={groupsData} 
+            teams={teams}
+          />
+        );
       
       default:
         return <div>Tipo de competição não suportado</div>;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full w-full my-30">
+        <p>Carregando competição...</p>
+      </div>
+    );
+  }
+
+  if (!competitionData) {
+    return (
+      <div className="py-12">
+        <h2 className="text-2xl font-bold text-center">Competição não encontrada</h2>
+      </div>
+    );
+  }
 
   return (
     <div className="py-12">

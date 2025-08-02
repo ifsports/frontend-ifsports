@@ -1,6 +1,5 @@
 "use client";
-
-import type { Competition, GroupData, RoundData } from '@/types/competition';
+import type { Competition, GroupData, RoundData, Match } from '@/types/competition';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import GroupStageRound from './stage-round';
@@ -14,17 +13,109 @@ interface GroupStageCompetitionProps {
   knockoutRounds: RoundData[];
 }
 
-export default function GroupStageCompetition({ 
-  competition, 
+const calculateKnockoutPhases = (totalQualifiedTeams: number): string[] => {
+  const phases: string[] = [];
+  let teamsRemaining = totalQualifiedTeams;
+  
+  while (teamsRemaining > 1) {
+    if (teamsRemaining === 2) {
+      phases.push('Final');
+      break;
+    } else if (teamsRemaining <= 4) {
+      phases.push('Semifinal');
+      teamsRemaining = 2;
+    } else if (teamsRemaining <= 8) {
+      phases.push('Quartas de Final');
+      teamsRemaining = 4;
+    } else if (teamsRemaining <= 16) {
+      phases.push('Oitavas de Final');
+      teamsRemaining = 8;
+    } else if (teamsRemaining <= 32) {
+      phases.push('Primeira Fase');
+      teamsRemaining = 16;
+    } else {
+      const phaseNumber = Math.ceil(Math.log2(teamsRemaining)) - 4;
+      phases.push(`${phaseNumber + 1}ª Fase`);
+      teamsRemaining = Math.ceil(teamsRemaining / 2);
+    }
+  }
+  
+  return phases;
+};
+
+const generatePlaceholderMatches = (phaseName: string, numMatches: number, competitionId: string): Match[] => {
+  const matches: Match[] = [];
+  
+  for (let i = 0; i < numMatches; i++) {
+    matches.push({
+      id: `placeholder-${phaseName.toLowerCase().replace(/\s+/g, '-')}-${i}`,
+      competition: competitionId,
+      round: `placeholder-round-${phaseName.toLowerCase().replace(/\s+/g, '-')}`,
+      round_match_number: i + 1,
+      group: null,
+      team_home: {
+        competition: competitionId,
+        team_id: 'tbd'
+      },
+      team_away: {
+        competition: competitionId,
+        team_id: 'tbd'
+      },
+      status: 'not-started',
+      scheduled_datetime: null,
+      home_feeder_match: null,
+      away_feeder_match: null,
+      score_home: null,
+      score_away: null,
+      winner: null
+    });
+  }
+  
+  return matches;
+};
+
+export default function GroupStageCompetition({
+  competition,
   groups,
   teams,
   knockoutRounds
 }: GroupStageCompetitionProps) {
   
+  const calculatedKnockoutRounds = useMemo(() => {
+    if (knockoutRounds && knockoutRounds.length > 0) {
+      return knockoutRounds;
+    }
+    
+    if (competition.system === 'groups_elimination') {
+      const numGroups = groups.length;
+      const teamsQualifiedPerGroup = competition.teams_qualified_per_group || 2;
+      const totalQualifiedTeams = numGroups * teamsQualifiedPerGroup;
+      
+      if (totalQualifiedTeams > 1) {
+        const phaseNames = calculateKnockoutPhases(totalQualifiedTeams);
+        let teamsInCurrentPhase = totalQualifiedTeams;
+        
+        return phaseNames.map((phaseName, index) => {
+          const numMatches = Math.floor(teamsInCurrentPhase / 2);
+          const matches = generatePlaceholderMatches(phaseName, numMatches, competition.id);
+          teamsInCurrentPhase = numMatches;
+          
+          return {
+            id: `calculated-${phaseName.toLowerCase().replace(/\s+/g, '-')}`,
+            name: phaseName.toUpperCase(),
+            matches
+          };
+        });
+      }
+    }
+    
+    return [];
+  }, [competition, groups, knockoutRounds]);
+
   const allDisplayStages = useMemo(() => [
     { key: 'group-stage', name: 'FASE DE GRUPOS' },
-    ...knockoutRounds.map(round => ({ key: round.id, name: round.name }))
-  ], [knockoutRounds]);
+    ...calculatedKnockoutRounds.map(round => ({ key: round.id, name: round.name }))
+  ], [calculatedKnockoutRounds]);
 
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
 
@@ -70,14 +161,14 @@ export default function GroupStageCompetition({
         {currentStageIndex === 0 && (
           <div className="flex flex-col gap-8">
             {groups.map((groupData) => (
-              <GroupStageRound key={groupData.id} groupData={groupData} />
+              <GroupStageRound key={groupData.id} groupData={groupData} teams={teams} />
             ))}
           </div>
         )}
-        
+
         {currentStageIndex > 0 && (
-          <KnockoutRoundView 
-            round={knockoutRounds[currentStageIndex - 1]} 
+          <KnockoutRoundView
+            round={calculatedKnockoutRounds[currentStageIndex - 1]}
             teams={teams}
           />
         )}

@@ -1,20 +1,22 @@
 import type { TeamClassification } from "@/types/competition";
+import type { Team } from "@/types/team";
 import { Volleyball } from "lucide-react";
 
 interface GroupTableProps {
   groupName: string;
   classifications: TeamClassification[];
+  teams: Team[]
 }
 
-export default function GroupTable({ groupName, classifications }: GroupTableProps) {
+export default function GroupTable({ groupName, classifications, teams }: GroupTableProps) {
   return (
-    <div className="border border-gray-200 rounded-lg p-6 bg-white  flex-1 flex-shrink-0 ">
+    <div className="border border-gray-200 rounded-lg p-6 bg-white h-full flex-1 flex-shrink-0 ">
       <div className="flex mb-5 items-center gap-2">
         <span className="p-1 rounded-md border">
           <Volleyball size={18} className="text-[#4CAF50]" />
         </span>
         <p className="text-sm">
-          Grupo {groupName}
+         {groupName}
         </p>
       </div>
       <div className="overflow-x-auto">
@@ -31,17 +33,26 @@ export default function GroupTable({ groupName, classifications }: GroupTablePro
             </tr>
           </thead>
           <tbody>
-            {classifications.map((c) => (
-              <tr key={c.id} className="grid grid-cols-9 gap-2 items-center p-4 text-gray-900 border-b last:border-b-0">
-                <td className="col-span-3 text-left font-medium">{c.team.name}</td>
-                <td className="text-center font-semibold">{c.points}</td>
-                <td className="text-center">{c.games_played}</td>
-                <td className="text-center">{c.wins}</td>
-                <td className="text-center">{c.draws}</td>
-                <td className="text-center">{c.losses}</td>
-                <td className="text-center">{c.score_difference > 0 ? '+' : ''}{c.score_difference}</td>
-              </tr>
-            ))}
+            {classifications.map((c) => {
+              let teamName = c.team?.name;
+
+              if (!teamName && c.team) {
+                const foundTeam = teams.find(t => t.id === (typeof c.team === 'string' ? c.team : c.team.id));
+                teamName = foundTeam?.name ?? 'Equipe não encontrada';
+              }
+
+              return (
+                <tr key={c.id} className="grid grid-cols-9 gap-2 items-center p-4 text-gray-900 border-b last:border-b-0">
+                  <td className="col-span-3 text-left font-medium">{teamName}</td>
+                  <td className="text-center font-semibold">{c.points}</td>
+                  <td className="text-center">{c.games_played}</td>
+                  <td className="text-center">{c.wins}</td>
+                  <td className="text-center">{c.draws}</td>
+                  <td className="text-center">{c.losses}</td>
+                  <td className="text-center">{c.score_difference > 0 ? '+' : ''}{c.score_difference}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

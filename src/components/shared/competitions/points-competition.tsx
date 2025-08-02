@@ -4,13 +4,15 @@ import type { Competition, GroupData } from "@/types/competition";
 import GroupTable from "./group-table";
 import { useState } from "react";
 import MatchCard from "./match-card";
+import type { Team } from "@/types/team";
 
 interface PointsCompetitionProps {
   competition: Competition;
   groups: GroupData[];
+  teams: Team[];
 }
 
-export default function PointsCompetition({ competition, groups }: PointsCompetitionProps) {
+export default function PointsCompetition({ competition, groups, teams }: PointsCompetitionProps) {
   const [activeRoundIndex, setActiveRoundIndex] = useState(0);
 
   const mainGroup = groups[0];
@@ -34,7 +36,8 @@ export default function PointsCompetition({ competition, groups }: PointsCompeti
 
         <GroupTable 
           groupName="Geral"
-          classifications={mainGroup.classifications} 
+          classifications={mainGroup.classifications}
+          teams={teams}
         />
       </div>
 
@@ -60,6 +63,7 @@ export default function PointsCompetition({ competition, groups }: PointsCompeti
             <MatchCard
               key={match.id}
               match={match}
+              teams={teams}
             />
           );
         })}

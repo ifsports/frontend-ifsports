@@ -5,12 +5,14 @@ import { Volleyball, Edit } from "lucide-react";
 import { useState } from "react";
 import CustomDialog from "../custom-dialog";
 import ActionButton from "../action-button";
+import type { Team } from "@/types/team";
 
 interface MatchCardProps {
   match: Match;
   variant?: "student" | "organizer";
   onEditMatch?: (match: Match) => void;
   teamOptions?: Array<{ value: string; label: string }>;
+  teams?: Team[];
 }
 
 const formatMatchTime = (datetime: string | null | undefined) => {
@@ -28,13 +30,16 @@ export default function MatchCard({
   match, 
   variant = "student", 
   onEditMatch,
-  teamOptions = []
+  teamOptions = [],
+  teams
 }: MatchCardProps) {
   const { date, time } = formatMatchTime(match.scheduled_datetime);
-  const teamHomeName = match.team_home?.team_id ?? 'A definir';
-  const teamAwayName = match.team_away?.team_id ?? 'A definir';
+  const teamHomeId = match.team_home?.team_id;
+  const teamAwayId = match.team_away?.team_id;
 
-  // Estados para o dialog de edição
+  const teamHomeName = teams?.find(team => team.id === teamHomeId)?.name ?? 'A definir';
+  const teamAwayName = teams?.find(team => team.id === teamAwayId)?.name ?? 'A definir';
+
   const [editGameDialogOpen, setEditGameDialogOpen] = useState(false);
   const [homeTeamSelect, setHomeTeamSelect] = useState(teamHomeName);
   const [awayTeamSelect, setAwayTeamSelect] = useState(teamAwayName);
@@ -53,9 +58,6 @@ export default function MatchCard({
   };
 
   const handleGameSubmit = () => {
-    
-    // salvar as alterações do jogo
-
     const updatedMatch: Match = {
       ...match,
       team_home: { team_id: homeTeamSelect, competition: match.competition },

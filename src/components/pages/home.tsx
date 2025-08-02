@@ -185,7 +185,7 @@ export default function HomePage(){
                                     : 'grid-cols-3'
                             }`}>
                                 {group.map((competition) => (
-                                    <CompetitionCard key={competition.id} competition={competition} />
+                                    <CompetitionCard key={competition.id} competition={competition} campusId={selectedCampus} />
                                 ))}
                             </div>
                         </CarouselItem>
