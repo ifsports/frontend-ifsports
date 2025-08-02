@@ -57,13 +57,24 @@ export const axiosAPI = async <TypeResponse>({
         const e = error as AxiosError<any>;
         const errorData = e.response?.data;
 
-        // Tenta extrair a melhor mensagem possível
-        const message =
-            errorData?.detail ||
-            errorData?.message ||
-            errorData?.error ||
-            (Array.isArray(errorData?.errors) && errorData.errors.join(", ")) ||
-            "Ocorreu um erro inesperado";
+        let message = "Ocorreu um erro inesperado";
+
+        if (errorData) {
+            if (typeof errorData === "string") {
+                message = errorData;
+            } else if (typeof errorData.detail === "string") {
+                message = errorData.detail;
+            } else if (typeof errorData.message === "string") {
+                message = errorData.message;
+            } else if (typeof errorData.error === "string") {
+                message = errorData.error;
+            } else if (Array.isArray(errorData.errors)) {
+                message = errorData.errors.join(", ");
+            } else {
+                // Se ainda for objeto, transforma em string legível
+                message = JSON.stringify(errorData);
+            }
+        }
 
         throw new Error(message);
     }

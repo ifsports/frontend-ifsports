@@ -31,8 +31,11 @@ export default function Header() {
                 callbackUrl: "/auth/login",
                 redirect: true 
             });
-        } catch (error) {
-            toast.error("Erro ao fazer logout.");
+        } catch (error: any) {
+            console.error("Erro no logout:", error);
+
+            const message = error?.message || "Erro ao fazer logout.";
+            toast.error(message);
         }
     };
 

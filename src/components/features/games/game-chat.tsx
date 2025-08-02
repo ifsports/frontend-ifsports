@@ -108,7 +108,7 @@ export default function GameChat({ gameId, match } : GameChatProps) {
                     )}
                 </div>
             ) : (
-                <div className="p-4 flex flex-col gap-4 flex-grow flex items-center justify-center w-full">
+                <div className="p-4 flex-col gap-4 flex-grow flex items-center justify-center w-full">
                     <p className="text-center text-sm text-gray-500 max-w-full">
                         Chat disponível apenas para partidas em andamento...
                     </p>

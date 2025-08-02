@@ -14,9 +14,10 @@ interface GameLiveProps {
     matchData: MatchLive | null;
     competition: Competition | null;
     selectedCampus: string;
+    variant?: "student" | "organizer";
 }
 
-export default function GameLive({ matchData, competition, selectedCampus } : GameLiveProps) {
+export default function GameLive({ matchData, competition, selectedCampus, variant="student" } : GameLiveProps) {
     const { data: teams, isLoading: isLoadingTeams } = useTeams(selectedCampus);
 
     const matchTeams = useMemo(() => {
@@ -58,7 +59,7 @@ export default function GameLive({ matchData, competition, selectedCampus } : Ga
     }
 
     return (
-        <Link href={`/jogos/${matchData?.match_id}/campus/${selectedCampus}`} className="rounded-xl bg-white shadow-2xl flex flex-col gap-2 items-center pt-4 px-4 pb-6 hover:shadow-3xl transition-shadow duration-200">
+        <Link href={`${variant === "organizer" ? `/organizador/partidas/${matchData?.match_id}` : `/jogos/${matchData?.match_id}`}/campus/${selectedCampus}`} className="rounded-xl bg-white shadow-2xl flex flex-col gap-2 items-center pt-4 px-4 pb-6 hover:shadow-3xl transition-shadow duration-200">
             <div className="flex items-center gap-2 flex-col">
                 { matchData?.status === "in-progress" ? (
                     <div className="flex items-center justify-center gap-2 bg-red-500 px-5 py-2 rounded-full">

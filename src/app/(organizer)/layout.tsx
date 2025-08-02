@@ -6,6 +6,9 @@ import Image from 'next/image';
 
 import logoIfsports from "@/assets/ifsports-logo.png"
 import { usePathname } from 'next/navigation';
+import { logoutUser } from '@/lib/requests/auth';
+import { signOut } from 'next-auth/react';
+import { toast } from 'sonner';
 
 interface OrganizerLayoutProps {
   children: React.ReactNode;
@@ -58,6 +61,22 @@ export default function OrganizerLayout({ children }: OrganizerLayoutProps) {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+
+      await signOut({ 
+          callbackUrl: "/auth/login",
+          redirect: true 
+      });
+    } catch (error: any) {
+      console.error("Erro no logout:", error);
+
+      const message = error?.message || "Erro ao fazer logout.";
+      toast.error(message);
+    }
+  };
+
   return (
     <>
       <div className="flex min-h-screen bg-gray-50 text-gray-800">
@@ -65,7 +84,7 @@ export default function OrganizerLayout({ children }: OrganizerLayoutProps) {
         <nav className="hidden xl:flex bg-white max-w-xs w-full border-r border-gray-200 min-h-screen p-6 flex-col">
           <div className="flex items-center justify-between gap-8 mb-6">
             <Image src={logoIfsports} alt="Logo" width={150} height={100} />
-            <button className="cursor-pointer">
+            <button onClick={handleLogout} className="cursor-pointer">
               <LogOut size={18} />
             </button>
           </div>
@@ -112,7 +131,7 @@ export default function OrganizerLayout({ children }: OrganizerLayoutProps) {
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-4 w-full max-w-sm">
             <div className="flex items-center justify-between gap-8 mb-6">
               <Image src={logoIfsports} alt="Logo" width={150} height={100} />
-              <button className="cursor-pointer">
+              <button onClick={handleLogout} className="cursor-pointer">
                 <LogOut size={18} />
               </button>
             </div>

@@ -1,6 +1,7 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import NextAuth from "next-auth";
 import { signIn } from "@/lib/requests/auth";
+import jwt from "jsonwebtoken"
 
 import { Session, User as NextAuthUser, JWT as NextAuthJWT } from "next-auth";
 
@@ -8,6 +9,7 @@ interface CustomUser extends NextAuthUser {
     accessToken?: string;
     refreshToken?: string;
     provider?: string;
+    campus?: string;
 }
 
 interface CustomJWT extends NextAuthJWT {
@@ -18,10 +20,11 @@ interface CustomJWT extends NextAuthJWT {
     name?: string | null;
     email?: string | null;
     image?: string | null;
+    campus?: string;
     accessTokenExpires?: number;
 }
 
-interface CustomSession extends Session {
+export interface CustomSession extends Session {
     accessToken?: string;
     refreshToken?: string;
     provider?: string;
@@ -30,7 +33,19 @@ interface CustomSession extends Session {
         name?: string | null;
         email?: string | null;
         image?: string | null;
+        campus?: string;
     };
+}
+
+export function decodeAccessToken(accessToken: string) {
+    try {
+        // Decodifica sem verificar a assinatura (só para ler os dados)
+        const decoded = jwt.decode(accessToken) as any;
+        return decoded;
+    } catch (error) {
+        console.error('Erro ao decodificar access token:', error);
+        return null;
+    }
 }
 
 const authOptions = {
@@ -50,17 +65,25 @@ const authOptions = {
                 if (!credentials) {
                     return null;
                 }
+                console.log(credentials)
                 try {
                     const response = await signIn(credentials);
 
                     if (response.data && response.data.access_token) {
+                        // DECODIFICAR O ACCESS TOKEN AQUI
+                        const decodedToken = decodeAccessToken(response.data.access_token);
+                        
                         return {
                             id: credentials.matricula,
                             accessToken: response.data.access_token,
                             refreshToken: response.data.refresh_token,
+                            campus: decodedToken?.campus,
+                            name: decodedToken?.name || decodedToken?.nome,
+                            email: decodedToken?.email,
                         } as CustomUser;
                     }
                 } catch (error) {
+                    console.error('Erro na autenticação:', error);
                 }
                 return null;
             }
@@ -79,6 +102,9 @@ const authOptions = {
             },
             async authorize(credentials) {
                 if (credentials?.token && credentials?.userId) {
+                    // DECODIFICAR O TOKEN SUAP TAMBÉM
+                    const decodedToken = decodeAccessToken(credentials.token);
+                    
                     return {
                         id: credentials.userId,
                         accessToken: credentials.token,
@@ -86,6 +112,7 @@ const authOptions = {
                         name: credentials.userName,
                         email: credentials.userEmail,
                         image: credentials.userImage,
+                        campus: decodedToken?.campus, // Extrair do token
                     } as CustomUser;
                 }
                 return null;
@@ -109,6 +136,7 @@ const authOptions = {
                     name: customUser.name,
                     email: customUser.email,
                     image: customUser.image,
+                    campus: customUser.campus, // ADICIONAR AQUI
                 };
             }
 
@@ -129,6 +157,7 @@ const authOptions = {
             customSession.user.name = customToken.name ?? null;
             customSession.user.email = customToken.email ?? null;
             customSession.user.image = customToken.image ?? null;
+            customSession.user.campus = customToken.campus ?? undefined; // ADICIONAR AQUI
 
             return customSession;
         }
