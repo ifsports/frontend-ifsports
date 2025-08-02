@@ -1,3 +1,4 @@
+import type { CreateTeamFormData } from "@/lib/schemas/team-schema";
 import type { Competition } from "./competition";
 
 export interface Team {
@@ -21,3 +22,7 @@ export interface TeamMember {
 export interface APIGetTeamsFromCampus {
   teams: Team[] | null;
 }
+
+export type CreateTeamPayload = Omit<CreateTeamFormData, 'members'> & {
+  members: string[];
+};

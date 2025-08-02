@@ -258,12 +258,14 @@ export default function TeamManagement() {
         <h1 className="text-2xl font-bold font-title text-[#062601] leading-[1.3]">
           Minhas Equipes
         </h1>
-        <Link href="/cadastrar-equipe" className="border-none py-3 px-6 rounded-lg bg-[#4CAF50] text-white font-semibold cursor-pointer max-[530px]:text-sm">
+        <Link href="/registrar-equipe" className="border-none py-3 px-6 rounded-lg bg-[#4CAF50] text-white font-semibold cursor-pointer max-[530px]:text-sm">
           Cadastrar nova equipe
         </Link>
       </div>
 
-      {teams.map((team, teamIndex) => {
+
+      {teams.length > 0 ? (
+      teams.map((team, teamIndex) => {
         const formattedMembers: FormattedMember[] = team.members.map(member => {
           const fullData = membersById.get(member.user_id || '');
 
@@ -288,13 +290,15 @@ export default function TeamManagement() {
         const teamActions = [
           {
             onClick: () => openDialog('addPlayer', null, team),
-            className: "text-[#4CAF50] cursor-pointer py-2 px-4 border border-gray-300 rounded-lg bg-white flex items-center gap-2 font-semibold text-xs",
+            className:
+              "text-[#4CAF50] cursor-pointer py-2 px-4 border border-gray-300 rounded-lg bg-white flex items-center gap-2 font-semibold text-xs",
             text: "Adicionar novo membro",
             icon: UserPlus
           },
           {
             onClick: () => openDialog('removeTeam', null, team),
-            className: "text-red-500 cursor-pointer py-2 px-4 border border-gray-300 rounded-lg bg-white flex items-center gap-2 font-semibold text-xs",
+            className:
+              "text-red-500 cursor-pointer py-2 px-4 border border-gray-300 rounded-lg bg-white flex items-center gap-2 font-semibold text-xs",
             text: "Excluir equipe",
             icon: Trash2
           }
@@ -319,7 +323,13 @@ export default function TeamManagement() {
             />
           </TeamCard>
         );
-      })}
+      })
+    ) : (
+      <div className='mt-20'>
+        <p className="text-center text-gray-500">Nenhuma equipe encontrada.</p>
+      </div>
+    )}
+
 
       <CustomDialog
         open={dialogs.removePlayer}

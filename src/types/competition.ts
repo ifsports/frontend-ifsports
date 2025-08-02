@@ -83,6 +83,7 @@ export interface Competition {
   system: CompetitionSystem;
   image: string; 
   min_members_per_team: number;
+  max_members_per_team: number;
   teams_per_group: number | null;
   teams_qualified_per_group: number | null;
   stages?: Stage[];

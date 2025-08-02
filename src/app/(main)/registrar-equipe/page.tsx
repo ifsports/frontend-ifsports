@@ -3,37 +3,40 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+
 import { X, Users } from 'lucide-react';
 import { toast } from 'sonner';
-
-// Schema de validação com Zod
-const teamSchema = z.object({
-  name: z.string().min(1, 'Nome da equipe é obrigatório'),
-  abbreviation: z.string().min(1, 'Abreviação é obrigatória'),
-  competition: z.string().min(1, 'Competição é obrigatória'),
-  members: z.array(
-    z.object({
-      registration: z.string().min(1, 'Matrícula é obrigatória')
-    })
-  ).min(1, 'Pelo menos um membro é obrigatório')
-});
+import { getCompetitionsAuth } from '@/lib/requests/competitions';
+import type { Competition } from '@/types/competition';
+import { teamSchema, type CreateTeamFormData } from '@/lib/schemas/team-schema';
+import { createTeam } from '@/lib/requests/teams';
+import type { CreateTeamPayload } from '@/types/team';
 
 export default function TeamRegistrationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const competitionData = {
-    '1': { min: 1, max: 5, name: 'Futebol' },
-    '2': { min: 2, max: 8, name: 'Basquete' },
-    '3': { min: 1, max: 3, name: 'Tênis' }
-  };
+  const [competitions, setCompetitions] = useState<Competition[] | []>([])
+
+  async function getCompetitions() {
+    const response = await getCompetitionsAuth();
+    
+    if (!response.success) {
+      toast.error(response.error);
+      return null;
+    }
+
+    setCompetitions(response.data as Competition[])
+  }
+
+  useEffect(() => {
+    getCompetitions()
+  }, [])
 
   const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm({
     resolver: zodResolver(teamSchema),
     defaultValues: {
       name: '',
       abbreviation: '',
-      competition: '',
+      competition_id: '',
       members: [{ registration: '' }]
     }
   });
@@ -43,32 +46,38 @@ export default function TeamRegistrationForm() {
     name: 'members'
   });
 
-  const selectedCompetition = watch('competition');
+  const selectedCompetition = watch('competition_id');
 
   const getCompetitionLimits = () => {
-    if (!selectedCompetition || !competitionData[selectedCompetition]) return null;
-    return competitionData[selectedCompetition];
+    if (!selectedCompetition) return null;
+
+    const competition = competitions.find(c => c.id === selectedCompetition);
+
+    if (!competition) return null;
+
+    return {
+      min: competition.min_members_per_team,
+      max: competition.max_members_per_team
+    };
   };
 
   const updateMembersForCompetition = () => {
     const limits = getCompetitionLimits();
+
     if (limits) {
       const currentCount = fields.length;
       const targetCount = limits.min;
       
       if (currentCount < targetCount) {
-        // Adicionar membros necessários
         const membersToAdd = targetCount - currentCount;
         for (let i = 0; i < membersToAdd; i++) {
           append({ registration: '' });
         }
       } else if (currentCount > targetCount) {
-        // Remover membros excedentes
         const newMembers = fields.slice(0, targetCount).map(() => ({ registration: '' }));
         replace(newMembers);
       }
     } else {
-      // Se não há competição selecionada, manter apenas 1 membro
       replace([{ registration: '' }]);
     }
   };
@@ -84,37 +93,38 @@ export default function TeamRegistrationForm() {
     }
   };
 
-  const removeMember = (index) => {
+  const removeMember = (index: number) => {
     const limits = getCompetitionLimits();
     if (limits && fields.length > limits.min) {
       remove(index);
     }
   };
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: CreateTeamFormData) => {
     setIsSubmitting(true);
+
+    const payload: CreateTeamPayload = {
+      ...data,
+      members: data.members.map(m => m.registration)
+    };
+
+    console.log(payload)
     
     try {
-      const response = await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            success: true,
-            message: 'Equipe cadastrada com sucesso!',
-            created_at: new Date().toLocaleString('pt-BR')
-          });
-        }, 1000);
-      });
+      const response = await createTeam(payload)
 
-      if (response.success) {
-        toast("Sucesso!", response.message);
-        
-        setValue('name', '');
-        setValue('abbreviation', '');
-        setValue('competition', '');
-        replace([{ registration: '' }]);
+      if (!response.success) {
+        toast.error(response.error);
+        return;
       }
+
+      toast("Solicitação enviada com sucesso!");
+  
+      setValue('name', '');
+      setValue('abbreviation', '');
+      setValue('competition_id', '');
+      replace([{ registration: '' }]);
     } catch (error) {
-      console.error('Erro na submissão:', error);
       toast.error("Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente.");
     } finally {
       setIsSubmitting(false);
@@ -190,21 +200,21 @@ export default function TeamRegistrationForm() {
             </label>
             <div className="border border-gray-300 rounded-lg">
               <select
-                {...register('competition')}
+                {...register('competition_id')}
                 className={`w-full p-4 bg-transparent outline-none text-base ${
                   !selectedCompetition ? 'text-gray-500' : 'text-black'
                 }`}
               >
                 <option value="">Selecione uma competição</option>
-                {Object.entries(competitionData).map(([id, data]) => (
-                  <option key={id} value={id} className="text-black">
-                    {data.name}
+                {competitions.map((competition) => (
+                  <option key={competition.id} value={competition.id} className="text-black">
+                    {competition.name}
                   </option>
                 ))}
               </select>
             </div>
-            {errors.competition && (
-              <div className="text-red-600 text-sm mt-1">{errors.competition.message}</div>
+            {errors.competition_id && (
+              <div className="text-red-600 text-sm mt-1">{errors.competition_id.message}</div>
             )}
           </div>
         </div>

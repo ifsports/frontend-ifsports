@@ -1,5 +1,6 @@
-import type { APIGetTeamsFromCampus } from "@/types/team";
+import type { APIGetTeamsFromCampus, CreateTeamPayload } from "@/types/team";
 import { axiosAPI } from "../axios-api";
+import type { CreateTeamFormData } from "../schemas/team-schema";
 
 export const getTeamFromCampusAuth = async () => {
     const result = await axiosAPI<APIGetTeamsFromCampus>({
@@ -55,6 +56,21 @@ export const deleteTeam = async ({ team_id, data }: { team_id: string, data: obj
         const result = await axiosAPI({
             endpoint: `/teams/${team_id}`,
             method: "DELETE",
+            data,
+        })
+
+        return { success: true, data: result };
+    } catch (err) {
+        const error = err as Error;
+        return { success: false, error: error.message };
+    }
+}
+
+export const createTeam = async (data: CreateTeamPayload) => {
+    try {
+        const result = await axiosAPI({
+            endpoint: `/teams/`,
+            method: "POST",
             data,
         })
 
