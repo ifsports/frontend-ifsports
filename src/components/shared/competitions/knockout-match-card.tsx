@@ -192,8 +192,15 @@ export default function KnockoutMatchCard({ match, homeTeam, awayTeam, stageName
                 <label className="text-[#062601]">Rodada</label>
                 <input
                   type="number"
-                  value={gameRound}
-                  onChange={(e) => setGameRound(Number(e.target.value))}
+                  value={Number.isNaN(gameRound) ? '' : gameRound}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    if (!Number.isNaN(val) && val >= 1) {
+                      setGameRound(val);
+                    } else {
+                      setGameRound(1);
+                    }
+                  }}
                   className="p-2 border border-[#d9e1e7] rounded-lg"
                   min="1"
                   required

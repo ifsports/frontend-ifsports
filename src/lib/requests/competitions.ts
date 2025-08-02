@@ -1,5 +1,5 @@
 import {axiosAPI} from "@/lib/axios-api";
-import {APIGetCompetitions, type APIGetTeamInCompetition, type Competition, type CompetitionTeam, type Match, type PaginatedResponse, type RoundData, type TeamClassification} from "@/types/competition";
+import {APIGetCompetitions, type APIGetTeamInCompetition, type Competition, type CompetitionTeam, type Match, type Modality, type PaginatedResponse, type RoundData, type TeamClassification} from "@/types/competition";
 import type { Team } from "@/types/team";
 
 export const getCompetitionsNoAuth = async (campus_code: { campus_code: string }) => {
@@ -170,6 +170,20 @@ export async function getMatchDetails(matchId: string) {
       method: "GET",
       withAuth: false
     });
+    return { success: true, data: result.data };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
+
+export async function getModalityDetails(modalityId: string) {
+  try {
+    const result = await axiosAPI<Modality>({
+      endpoint: `/modalities/${modalityId}/`,
+      method: "GET"
+    });
+
     return { success: true, data: result.data };
   } catch (err) {
     const error = err as Error;

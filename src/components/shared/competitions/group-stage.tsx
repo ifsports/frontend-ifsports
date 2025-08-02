@@ -5,12 +5,15 @@ import { useMemo, useState } from 'react';
 import GroupStageRound from './stage-round';
 import KnockoutRoundView from './knockout-round-view';
 import type { Team } from '@/types/team';
+import Link from 'next/link';
+import ActionButton from '../action-button';
 
 interface GroupStageCompetitionProps {
   competition: Competition;
   groups: GroupData[];
   teams: Team[];
   knockoutRounds: RoundData[];
+  variant?: "student" | "organizer";
 }
 
 const calculateKnockoutPhases = (totalQualifiedTeams: number): string[] => {
@@ -78,7 +81,8 @@ export default function GroupStageCompetition({
   competition,
   groups,
   teams,
-  knockoutRounds
+  knockoutRounds,
+  variant="student"
 }: GroupStageCompetitionProps) {
   
   const calculatedKnockoutRounds = useMemo(() => {
@@ -127,7 +131,24 @@ export default function GroupStageCompetition({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-4 pb-4 mt-16 border-b border-gray-300">
+      { variant === "organizer" && (
+        <div className="flex justify-between items-center mb-10">
+          <div className="flex items-center gap-4">
+            <Link href="/organizador/competicoes" className="h-4 flex items-center text-black">
+              <ChevronLeft size={22} />
+            </Link>
+            <h1 className="text-2xl font-bold font-title text-[#062601]">{competition.name}</h1>
+          </div>
+          <ActionButton
+            variant="danger"
+            className="bg-red-600 text-white cursor-pointer px-6 py-2.5 rounded-lg font-semibold"
+          >
+            Encerrar competição
+          </ActionButton>
+        </div>
+      )}
+
+      <div className={`flex items-center justify-between gap-4 pb-4 border-b border-gray-300 ${variant === "student" ? 'mt-16' : ''}`}>
         <button
           onClick={handlePrevStage}
           disabled={!canGoPrev}
@@ -161,7 +182,7 @@ export default function GroupStageCompetition({
         {currentStageIndex === 0 && (
           <div className="flex flex-col gap-8">
             {groups.map((groupData) => (
-              <GroupStageRound key={groupData.id} groupData={groupData} teams={teams} />
+              <GroupStageRound key={groupData.id} groupData={groupData} teams={teams} variant={variant} />
             ))}
           </div>
         )}
@@ -170,6 +191,7 @@ export default function GroupStageCompetition({
           <KnockoutRoundView
             round={calculatedKnockoutRounds[currentStageIndex - 1]}
             teams={teams}
+            variant={variant}
           />
         )}
       </div>

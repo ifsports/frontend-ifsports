@@ -19,6 +19,7 @@ import { getTeamFromCampusNoAuth } from '@/lib/requests/teams';
 interface CompetitionPageProps {
   competitionId: string;
   campusId: string;
+  variant?: "student" | "organizer";
 }
 
 const generateEliminationRoundNames = (totalRounds: number): string[] => {
@@ -45,7 +46,7 @@ const generateEliminationRoundNames = (totalRounds: number): string[] => {
   return names;
 };
 
-export default function CompetitionPage({ competitionId, campusId }: CompetitionPageProps) {
+export default function CompetitionPage({ competitionId, campusId, variant="student" }: CompetitionPageProps) {
   const [competition, setCompetition] = useState<Competition>();
   const [competitionTeams, setCompetitionTeams] = useState<CompetitionTeam[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -331,6 +332,7 @@ export default function CompetitionPage({ competitionId, campusId }: Competition
             groups={groupsData}
             teams={teams} 
             knockoutRounds={knockoutRoundsData}
+            variant={variant}
           />
         );
 
@@ -340,6 +342,7 @@ export default function CompetitionPage({ competitionId, campusId }: Competition
             competition={competitionData} 
             teams={teams} 
             rounds={knockoutRoundsData} 
+            variant={variant}
           />
         );
       
@@ -349,6 +352,7 @@ export default function CompetitionPage({ competitionId, campusId }: Competition
             competition={competitionData} 
             groups={groupsData} 
             teams={teams}
+            variant={variant}
           />
         );
       
@@ -374,8 +378,9 @@ export default function CompetitionPage({ competitionId, campusId }: Competition
   }
 
   return (
-    <div className="py-12">
-      <div className="flex flex-col gap-3 mb-12">
+    <div className={`${variant === "student" ? 'py-12' : ''}`}>
+      { variant === "student" && (
+        <div className="flex flex-col gap-3 mb-12">
         <h2 className="text-4xl text-[#062601] font-title font-bold">
           {competitionData.name}
         </h2>
@@ -385,6 +390,7 @@ export default function CompetitionPage({ competitionId, campusId }: Competition
           atualizadas e todas as rodadas de partidas.
         </p>
       </div>
+      )}
       {renderCompetitionType()}
     </div>
   );

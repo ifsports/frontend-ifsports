@@ -1,88 +1,15 @@
 'use client'
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Trophy } from 'lucide-react';
-
-interface Competition {
-  id: string;
-  name: string;
-  modality: Modality;
-  status: 'not-started' | 'in-progress' | 'finished';
-  start_date: string | null;
-  end_date: string | null;
-  system: 'league' | 'groups_elimination' | 'elimination';
-  image: string;
-  min_members_per_team: number;
-  teams_per_group: number | null;
-  teams_qualified_per_group: number | null;
-  teamsCount: number;
-}
-
-interface Modality {
-  id: string;
-  name: string;
-  campus: string;
-}
+import type { Competition, Modality } from '@/types/competition';
+import useCompetitionsWithModalities from '@/hooks/useCompetitionsWithModalities';
 
 export default function OrganizerCompetitionsPage() {
-  const [competitions] = useState<Competition[]>([
-    {
-      id: '1',
-      name: 'Basquete masculino',
-      modality: { id: '1', name: 'Basquete', campus: 'Campus Central' },
-      status: 'in-progress',
-      start_date: '2024-11-27',
-      end_date: '2024-12-15',
-      system: 'groups_elimination',
-      image: '/images/basquete-masculino.jpg',
-      min_members_per_team: 8,
-      teams_per_group: 4,
-      teams_qualified_per_group: 2,
-      teamsCount: 20
-    },
-    {
-      id: '2',
-      name: 'Vôlei feminino',
-      modality: { id: '2', name: 'Vôlei', campus: 'Campus Central' },
-      status: 'not-started',
-      start_date: '2024-12-01',
-      end_date: '2024-12-20',
-      system: 'league',
-      image: '/images/volei-feminino.jpg',
-      min_members_per_team: 6,
-      teams_per_group: null,
-      teams_qualified_per_group: null,
-      teamsCount: 16
-    },
-    {
-      id: '3',
-      name: 'Futsal masculino',
-      modality: { id: '3', name: 'Futsal', campus: 'Campus Central' },
-      status: 'finished',
-      start_date: '2024-10-15',
-      end_date: '2024-11-15',
-      system: 'elimination',
-      image: '/images/futsal-masculino.jpg',
-      min_members_per_team: 10,
-      teams_per_group: null,
-      teams_qualified_per_group: null,
-      teamsCount: 12
-    },
-    {
-      id: '4',
-      name: 'Vôlei de areia misto',
-      modality: { id: '2', name: 'Vôlei', campus: 'Campus Central' },
-      status: 'in-progress',
-      start_date: '2024-11-20',
-      end_date: '2024-12-10',
-      system: 'elimination',
-      image: '/images/volei-areia-misto.jpg',
-      min_members_per_team: 4,
-      teams_per_group: null,
-      teams_qualified_per_group: null,
-      teamsCount: 8
-    }
-  ]);
+  
+  const { competitions, modalities, teamsCountMap, loading } = useCompetitionsWithModalities();
+
+  if (loading) return <p>Carregando...</p>;
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Não definido';
@@ -146,9 +73,11 @@ export default function OrganizerCompetitionsPage() {
                     index !== competitions.length - 1 ? 'border-b border-gray-300' : ''
                   }`}
                 >
-                  <td className="flex flex-col justify-start items-start gap-1">
+                  <td className="flex flex-col justify-start items-start">
                     <span className="font-medium text-sm">{competition.name}</span>
-                    <span className="font-light text-xs text-gray-600">{competition.modality.name}</span>
+                    <span className="font-light text-xs text-gray-600">
+                      {modalities[competition.modality]?.name ?? "Modalidade desconhecida"}
+                    </span>
                   </td>
                   
                   <td className="flex items-center">
@@ -158,7 +87,7 @@ export default function OrganizerCompetitionsPage() {
                   </td>
                   
                   <td className="flex items-center">
-                    {competition.teamsCount} equipes
+                    {teamsCountMap[competition.id] ?? 0} equipes
                   </td>
                   
                   <td className="flex items-center">
@@ -167,7 +96,7 @@ export default function OrganizerCompetitionsPage() {
                   
                   <td className="flex items-center">
                     <a 
-                      href={`/organizador/competicoes/${competition.id}`}
+                      href={`/organizador/competicoes/${competition.id}/campus/${modalities[competition.modality]?.campus ?? ''}`}
                       className="text-blue-500 font-medium text-sm no-underline hover:text-blue-600 transition-colors"
                     >
                       Gerenciar competição
