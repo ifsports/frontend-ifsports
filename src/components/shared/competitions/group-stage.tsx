@@ -14,6 +14,7 @@ interface GroupStageCompetitionProps {
   teams: Team[];
   knockoutRounds: RoundData[];
   variant?: "student" | "organizer";
+  onEditMatchClick: (match: Match) => void;
 }
 
 const calculateKnockoutPhases = (totalQualifiedTeams: number): string[] => {
@@ -82,27 +83,30 @@ export default function GroupStageCompetition({
   groups,
   teams,
   knockoutRounds,
-  variant="student"
+  variant="student",
+  onEditMatchClick
 }: GroupStageCompetitionProps) {
   
   const calculatedKnockoutRounds = useMemo(() => {
-    if (knockoutRounds && knockoutRounds.length > 0) {
-      return knockoutRounds;
-    }
-    
     if (competition.system === 'groups_elimination') {
       const numGroups = groups.length;
       const teamsQualifiedPerGroup = competition.teams_qualified_per_group || 2;
       const totalQualifiedTeams = numGroups * teamsQualifiedPerGroup;
       
-      if (totalQualifiedTeams > 1) {
+      // Verifica se todas as partidas da fase de grupos estão finalizadas
+      const allGroupMatches = groups.flatMap(group => group.rounds.flatMap(round => round.matches));
+      const allGroupMatchesFinished = allGroupMatches.length > 0 && allGroupMatches.every(match => match.status === 'finished');
+      
+      // Se as partidas da fase de grupos não estão finalizadas, calcula as próximas fases
+      // independentemente de ter rodadas reais da API
+      if (!allGroupMatchesFinished && totalQualifiedTeams > 1 && groups.length > 0) {
         const phaseNames = calculateKnockoutPhases(totalQualifiedTeams);
         let teamsInCurrentPhase = totalQualifiedTeams;
         
         return phaseNames.map((phaseName, index) => {
           const numMatches = Math.floor(teamsInCurrentPhase / 2);
           const matches = generatePlaceholderMatches(phaseName, numMatches, competition.id);
-          teamsInCurrentPhase = numMatches;
+          teamsInCurrentPhase = Math.ceil(teamsInCurrentPhase / 2); // Corrigido: calcula quantos times avançam
           
           return {
             id: `calculated-${phaseName.toLowerCase().replace(/\s+/g, '-')}`,
@@ -111,15 +115,26 @@ export default function GroupStageCompetition({
           };
         });
       }
+      
+      // Se as partidas da fase de grupos estão finalizadas, usa as rodadas reais da API
+      if (allGroupMatchesFinished && knockoutRounds && knockoutRounds.length > 0) {
+        return knockoutRounds;
+      }
     }
     
     return [];
   }, [competition, groups, knockoutRounds]);
 
-  const allDisplayStages = useMemo(() => [
-    { key: 'group-stage', name: 'FASE DE GRUPOS' },
-    ...calculatedKnockoutRounds.map(round => ({ key: round.id, name: round.name }))
-  ], [calculatedKnockoutRounds]);
+  const allDisplayStages = useMemo(() => {
+    const stages = [{ key: 'group-stage', name: 'FASE DE GRUPOS' }];
+    
+    // Só adiciona as próximas fases se elas existem
+    if (calculatedKnockoutRounds.length > 0) {
+      stages.push(...calculatedKnockoutRounds.map(round => ({ key: round.id, name: round.name })));
+    }
+    
+    return stages;
+  }, [calculatedKnockoutRounds]);
 
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
 
@@ -179,20 +194,31 @@ export default function GroupStageCompetition({
       </div>
 
       <div className="mt-8">
-        {currentStageIndex === 0 && (
+        {currentStageIndex === 0 ? (
           <div className="flex flex-col gap-8">
-            {groups.map((groupData) => (
-              <GroupStageRound key={groupData.id} groupData={groupData} teams={teams} variant={variant} />
-            ))}
+            {groups && groups.length > 0 ? (
+              groups.map((groupData) => (
+                <GroupStageRound key={groupData.id} groupData={groupData} teams={teams} variant={variant} onEditMatchClick={onEditMatchClick} />
+              ))
+            ) : (
+              <div className="text-center py-16 text-gray-500">
+                <p>Nenhum grupo disponível para esta competição.</p>
+              </div>
+            )}
           </div>
-        )}
-
-        {currentStageIndex > 0 && (
-          <KnockoutRoundView
-            round={calculatedKnockoutRounds[currentStageIndex - 1]}
-            teams={teams}
-            variant={variant}
-          />
+        ) : (
+          calculatedKnockoutRounds && calculatedKnockoutRounds.length > 0 && calculatedKnockoutRounds[currentStageIndex - 1] ? (
+            <KnockoutRoundView
+              round={calculatedKnockoutRounds[currentStageIndex - 1]}
+              teams={teams}
+              variant={variant}
+              onEditMatchClick={onEditMatchClick}
+            />
+          ) : (
+            <div className="text-center py-16 text-gray-500">
+              <p>Nenhuma fase de eliminação disponível.</p>
+            </div>
+          )
         )}
       </div>
     </>

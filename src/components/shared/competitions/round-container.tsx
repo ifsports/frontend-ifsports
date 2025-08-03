@@ -1,6 +1,6 @@
 "use client";
 
-import type { RoundData } from "@/types/competition";
+import type { Match, RoundData } from "@/types/competition";
 import type { Team } from "@/types/team";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
@@ -10,9 +10,10 @@ interface RoundsContainerProps {
   rounds: RoundData[];
   variant?: "student" | "organizer";
   teams?: Team[];
+  onEditMatchClick: (match: Match) => void;
 }
 
-export default function RoundsContainer({ rounds, variant, teams }: RoundsContainerProps) {
+export default function RoundsContainer({ rounds, variant, teams, onEditMatchClick }: RoundsContainerProps) {
   const [currentRoundIndex, setCurrentRoundIndex] = useState(0);
 
   const handlePrevRound = () => {
@@ -95,6 +96,7 @@ export default function RoundsContainer({ rounds, variant, teams }: RoundsContai
                 variant={variant} 
                 match={match} 
                 teams={teams}
+                onEditMatchClick={onEditMatchClick}
               />
             );
           })

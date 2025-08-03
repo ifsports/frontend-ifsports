@@ -16,9 +16,17 @@ interface KnockoutCompetitionProps {
   teams: Team[];
   rounds: RoundData[];
   variant?: "student" | "organizer";
+  // Adicionar a prop onEditMatchClick
+  onEditMatchClick: (match: Match) => void; // <-- Nova prop
 }
 
-export default function KnockoutCompetition({ competition, teams = [], rounds = [], variant="student" }: KnockoutCompetitionProps) {
+export default function KnockoutCompetition({
+  competition,
+  teams = [],
+  rounds = [],
+  variant = "student",
+  onEditMatchClick // <-- Receber a prop
+}: KnockoutCompetitionProps) {
   const [currentRoundIndex, setCurrentRoundIndex] = useState(0);
 
   const getTeamById = (teamId: string): Team | undefined => {
@@ -37,9 +45,11 @@ export default function KnockoutCompetition({ competition, teams = [], rounds = 
   const canGoNext = currentRoundIndex < rounds.length - 1;
   const currentRound = rounds[currentRoundIndex];
 
+  // Função para organizar as partidas em linhas (mantido como estava)
   const organizeMatchesInRows = (matches: Match[]) => {
     const rows = [];
-    const itemsPerRow = matches.length > 2 ? 2 : matches.length;
+    const itemsPerRow = matches.length > 2 ? 2 : matches.length; // Max 2 items per row
+    if (matches.length === 0) return []; // Avoid infinite loop if matches is empty
     for (let i = 0; i < matches.length; i += itemsPerRow > 0 ? itemsPerRow : 1) {
       rows.push(matches.slice(i, i + itemsPerRow));
     }
@@ -47,8 +57,15 @@ export default function KnockoutCompetition({ competition, teams = [], rounds = 
   };
 
   const renderMatches = () => {
-    if (!currentRound || currentRound.matches.length === 0) return null;
+    if (!currentRound || currentRound.matches.length === 0) {
+      return (
+        <div className="flex justify-center items-center py-8 text-gray-500">
+          <p>Nenhuma partida disponível para esta fase.</p>
+        </div>
+      );
+    }
 
+    // Renderiza uma única partida centralizada
     if (currentRound.matches.length === 1) {
       const match = currentRound.matches[0];
       const homeTeam = match.team_home ? getTeamById(match.team_home.team_id) : undefined;
@@ -62,13 +79,15 @@ export default function KnockoutCompetition({ competition, teams = [], rounds = 
             awayTeam={awayTeam}
             stageName="ELIMINATÓRIAS"
             variant={variant}
+            onEditMatchClick={variant === "organizer" ? onEditMatchClick : undefined} // <-- Passa a prop
           />
         </div>
       );
     }
 
+    // Renderiza múltiplas partidas organizadas em linhas
     const rows = organizeMatchesInRows(currentRound.matches);
-    
+
     return (
       <div className="flex flex-col gap-4">
         {rows.map((row, rowIndex) => (
@@ -76,7 +95,7 @@ export default function KnockoutCompetition({ competition, teams = [], rounds = 
             {row.map((match) => {
               const homeTeam = match.team_home ? getTeamById(match.team_home.team_id) : undefined;
               const awayTeam = match.team_away ? getTeamById(match.team_away.team_id) : undefined;
-              
+
               return (
                 <KnockoutMatchCard
                   key={match.id}
@@ -85,6 +104,7 @@ export default function KnockoutCompetition({ competition, teams = [], rounds = 
                   awayTeam={awayTeam}
                   stageName="ELIMINATÓRIAS"
                   variant={variant}
+                  onEditMatchClick={variant === "organizer" ? onEditMatchClick : undefined} // <-- Passa a prop
                 />
               );
             })}
@@ -117,6 +137,9 @@ export default function KnockoutCompetition({ competition, teams = [], rounds = 
           <ActionButton
             variant="danger"
             className="bg-red-600 text-white cursor-pointer px-6 py-2.5 rounded-lg font-semibold"
+            // Se houver uma lógica para "Encerrar Competição" no Knockout, ela estaria aqui.
+            // Por enquanto, apenas para demonstrar a ActionButton.
+            onClick={() => console.log("Encerrar Competição (Knockout)")}
           >
             Encerrar competição
           </ActionButton>

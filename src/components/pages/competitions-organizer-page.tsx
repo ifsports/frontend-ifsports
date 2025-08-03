@@ -9,7 +9,13 @@ export default function OrganizerCompetitionsPage() {
   
   const { competitions, modalities, teamsCountMap, loading } = useCompetitionsWithModalities();
 
-  if (loading) return <p>Carregando...</p>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center w-full">
+        <p>Carregando competições...</p>
+      </div>
+    )
+  }
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Não definido';

@@ -99,6 +99,10 @@ export interface Competition {
   teams_per_group: number | null;
   teams_qualified_per_group: number | null;
   stages?: Stage[];
+  groups?: {
+    id: string;
+    name: string;
+  }[];
 }
 
 export interface CompetitionWithModality extends Omit<Competition, 'modality'> {

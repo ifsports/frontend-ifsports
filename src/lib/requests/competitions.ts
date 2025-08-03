@@ -1,3 +1,4 @@
+import type { RawStanding } from "@/components/pages/competitions-page";
 import {axiosAPI} from "@/lib/axios-api";
 import {APIGetCompetitions, type APIGetTeamInCompetition, type Competition, type CompetitionTeam, type Match, type Modality, type PaginatedResponse, type RoundData, type TeamClassification} from "@/types/competition";
 import type { Team } from "@/types/team";
@@ -123,7 +124,7 @@ export async function getCompetitionRoundMatches(competitionId: string) {
 
 export async function getCompetitionStandings(competitionId: string) {
   try {
-    const result = await axiosAPI<TeamClassification[] | Match[]>({
+    const result = await axiosAPI<RawStanding[]>({
       endpoint: `/competitions/${competitionId}/standings/`,
       method: "GET",
       withAuth: false
@@ -184,6 +185,21 @@ export async function getModalityDetails(modalityId: string) {
       method: "GET"
     });
 
+    return { success: true, data: result.data };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
+
+
+export async function putEditGame({ matchId, data } : { matchId: string, data: object }) {
+  try {
+    const result = await axiosAPI<Match>({
+      endpoint: `/competitions/matches/${matchId}/`,
+      method: "PUT",
+      data
+    });
     return { success: true, data: result.data };
   } catch (err) {
     const error = err as Error;

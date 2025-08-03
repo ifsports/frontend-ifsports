@@ -1,4 +1,4 @@
-import type { GroupData } from "@/types/competition";
+import type { GroupData, Match } from "@/types/competition";
 import GroupTable from "./group-table";
 import RoundsContainer from "./round-container";
 import type { Team } from "@/types/team";
@@ -7,9 +7,10 @@ interface GroupStageRoundProps {
   groupData: GroupData;
   variant?: "student" | "organizer";
   teams: Team[];
+  onEditMatchClick: (match: Match) => void;
 }
 
-export default function GroupStageRound({ groupData, variant, teams }: GroupStageRoundProps) {
+export default function GroupStageRound({ groupData, variant, teams, onEditMatchClick }: GroupStageRoundProps) {
   return (
     <div className="flex flex-col lg:flex-row gap-8">
       <div className="lg:w-1/2">
@@ -27,6 +28,7 @@ export default function GroupStageRound({ groupData, variant, teams }: GroupStag
                 variant={variant} 
                 rounds={groupData.rounds}
                 teams={teams}
+                onEditMatchClick={onEditMatchClick}
               />
           ) : (
             <div className="p-4 text-center text-gray-500">

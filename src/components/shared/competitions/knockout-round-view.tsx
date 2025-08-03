@@ -9,9 +9,10 @@ interface KnockoutRoundViewProps {
   round: RoundData;
   teams: Team[];
   variant?: "student" | "organizer";
+  onEditMatchClick: (match: Match) => void;
 }
 
-export default function KnockoutRoundView({ round, teams, variant }: KnockoutRoundViewProps) {
+export default function KnockoutRoundView({ round, teams, variant, onEditMatchClick }: KnockoutRoundViewProps) {
   const getTeamById = (teamId: string): Team | undefined => {
     return teams.find(team => team.id === teamId);
   };
@@ -39,7 +40,7 @@ export default function KnockoutRoundView({ round, teams, variant }: KnockoutRou
     const awayTeam = match.team_away ? getTeamById(match.team_away.team_id) : undefined;
     return (
       <div className="w-full max-w-md mx-auto">
-        <KnockoutMatchCard variant={variant} match={match} homeTeam={homeTeam} awayTeam={awayTeam} />
+        <KnockoutMatchCard variant={variant} match={match} homeTeam={homeTeam} awayTeam={awayTeam} onEditMatchClick={variant === "organizer" ? onEditMatchClick : undefined} />
       </div>
     );
   }
@@ -53,7 +54,7 @@ export default function KnockoutRoundView({ round, teams, variant }: KnockoutRou
           {row.map((match) => {
             const homeTeam = match.team_home ? getTeamById(match.team_home.team_id) : undefined;
             const awayTeam = match.team_away ? getTeamById(match.team_away.team_id) : undefined;
-            return <KnockoutMatchCard variant={variant} key={match.id} match={match} homeTeam={homeTeam} awayTeam={awayTeam} />;
+            return <KnockoutMatchCard variant={variant} key={match.id} match={match} homeTeam={homeTeam} awayTeam={awayTeam} onEditMatchClick={variant === "organizer" ? onEditMatchClick : undefined} />;
           })}
         </div>
       ))}
