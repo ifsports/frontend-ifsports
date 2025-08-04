@@ -10,6 +10,34 @@ export const getTeamFromCampusAuth = async (status: { status: string }) => {
     return result;
 }
 
+export const getAllTeams = async () => {
+    try {
+        const result = await axiosAPI<APIGetTeamsFromCampus>({
+            endpoint: `/teams/`,
+            method: "GET"
+        })
+
+        return { success: true, data: result.data };
+    } catch (err) {
+        const error = err as Error;
+        return { success: false, error: error.message };
+    }
+}
+
+export const getTeamsWithoutStatus = async () => {
+    try {
+        const result = await axiosAPI<APIGetTeamsFromCampus>({
+            endpoint: `/teams/`,
+            method: "GET"
+        })
+
+        return { success: true, data: result.data };
+    } catch (err) {
+        const error = err as Error;
+        return { success: false, error: error.message };
+    }
+}
+
 export const getTeamFromCampusNoAuth = async (campus: { campus: string }) => {
     const result = await axiosAPI<APIGetTeamsFromCampus>({
         endpoint: `/teams/`,
@@ -18,6 +46,35 @@ export const getTeamFromCampusNoAuth = async (campus: { campus: string }) => {
     })
 
     return result;
+}
+
+export const getTeamById = async (teamId: string) => {
+    try {
+        const result = await axiosAPI({
+            endpoint: `/teams/${teamId}/`,
+            method: "GET"
+        })
+
+        return { success: true, data: result.data };
+    } catch (err) {
+        const error = err as Error;
+        return { success: false, error: error.message };
+    }
+}
+
+export const getTeamsByIds = async (teamIds: string[]) => {
+    try {
+        const result = await axiosAPI<APIGetTeamsFromCampus>({
+            endpoint: `/teams/by-ids/`,
+            method: "POST",
+            data: { team_ids: teamIds }
+        })
+
+        return { success: true, data: result.data };
+    } catch (err) {
+        const error = err as Error;
+        return { success: false, error: error.message };
+    }
 }
 
 export const deleteTeamMemberFromTeam = async ({ team_id, team_member_id, data }: { team_id: string, team_member_id: string, data: object }) => {

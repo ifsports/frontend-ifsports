@@ -8,9 +8,10 @@ export interface ActionButtonProps {
   variant?: ButtonVariant;
   children: ReactNode;
   className?: string;
+  disabled?: boolean;
 }
 
-export default function ActionButton({ onClick, type = "button", variant = "primary", children, className }: ActionButtonProps) {
+export default function ActionButton({ onClick, type = "button", variant = "primary", children, className, disabled = false }: ActionButtonProps) {
   const baseClasses = "py-5 border-0 w-full rounded-md text-center font-medium font-semibold cursor-pointer";
   const variants = {
     primary: "bg-[#4CAF50] text-white",
@@ -18,10 +19,10 @@ export default function ActionButton({ onClick, type = "button", variant = "prim
     secondary: "bg-gray-300 text-gray-700"
   };
   
-  const buttonClass = className || `${baseClasses} ${variants[variant]}`;
+  const buttonClass = className || `${baseClasses} ${variants[variant]} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
   
   return (
-    <button type={type} onClick={onClick} className={buttonClass}>
+    <button type={type} onClick={onClick} className={buttonClass} disabled={disabled}>
       {children}
     </button>
   );

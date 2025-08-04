@@ -17,6 +17,9 @@ export interface TeamWithCompetition extends Team {
 
 export interface TeamMember {
   user_id: string;
+  name?: string;
+  registration?: string;
+  course?: string;
 }
 
 export interface APIGetTeamsFromCampus {

@@ -15,11 +15,14 @@ export enum RequestStatusEnum {
 
 export interface Request {
   id: string;
+  team_id: string;
+  user_id?: string;
+  campus_code: string;
   request_type: RequestTypeEnum;
-  team: TeamWithCompetition;
-  user?: Player;
   reason?: string;
   reason_rejected?: string;
   status: RequestStatusEnum;
   created_at: string;
+  team?: TeamWithCompetition;
+  user?: Player;
 }
