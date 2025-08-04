@@ -5,7 +5,6 @@ import { Trophy, Edit2, Trash2, ChevronDown, Plus, X, Upload, Volleyball } from 
 import CustomDialog from '@/components/shared/custom-dialog';
 import InputField from '@/components/shared/input-field';
 import ActionButton from '@/components/shared/action-button';
-import Link from 'next/link';
 import { createCompetition, createModality, deleteCompetition, deleteModality, getCompetitionsAuth, getCompetitionTeams, getModalities, putModality } from '@/lib/requests/competitions';
 import { toast } from 'sonner';
 
@@ -472,10 +471,7 @@ export default function ModalitiesPage() {
                                   {getStatusLabel(competition.status)}
                                 </span>
                               </td>
-                              <td className="flex items-center gap-2">
-                                <Link href={`/organizador/competicoes/${competition.id}`} className="border-none bg-transparent cursor-pointer">
-                                  <Edit2 className="h-4 w-4 text-gray-600" />
-                                </Link>
+                              <td className="flex items-center">
                                 <button
                                   onClick={() => openDialog('removeCompetition', modality, competition)}
                                   className="border-none bg-transparent cursor-pointer"

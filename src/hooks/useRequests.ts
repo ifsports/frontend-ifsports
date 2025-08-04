@@ -3,6 +3,7 @@ import { getRequests, updateRequest, type UpdateRequestPayload } from '@/lib/req
 import { getTeamsWithoutStatus } from '@/lib/requests/teams';
 import { getDetailsUserByIds } from '@/lib/requests/auth';
 import { getTeamInCompetition } from '@/lib/requests/competitions';
+import { getDetailsCompetition } from '@/lib/requests/competitions';
 import type { Request } from '@/types/requests';
 import type { TeamWithCompetition } from '@/types/team';
 import type { User } from '@/types/user';
@@ -21,6 +22,8 @@ export function useRequests() {
     queryKey: ['requests'],
     queryFn: async () => {
       const result = await getRequests();
+
+      console.log('Requests fetched:', result);
       if (!result.success) {
         throw new Error(result.error);
       }
@@ -81,33 +84,40 @@ export function useRequests() {
     isLoading: isLoadingCompetitions,
     error: competitionsError
   } = useQuery({
-    queryKey: ['competitions', teamIds],
+    queryKey: ['competitions-details', requestsData?.map(r => r.competition_id).filter(Boolean) || []],
     queryFn: async () => {
-      if (teamIds.length === 0) return [];
+      if (!requestsData || requestsData.length === 0) return [];
       
-      const competitionsPromises = teamIds.map(async (teamId) => {
+      const competitionIds = [...new Set(
+        requestsData
+          .map(r => r.competition_id)
+          .filter((id): id is string => Boolean(id))
+      )];
+      
+      if (competitionIds.length === 0) return [];
+      
+      const competitionsPromises = competitionIds.map(async (competitionId) => {
         try {
-          const result = await getTeamInCompetition(teamId);
+          console.log(`Buscando detalhes da competição ${competitionId}`);
+          const result = await getDetailsCompetition(competitionId);
+
           if (!result.success) {
-            throw new Error(result.error);
+            console.error(`Erro ao buscar competição ${competitionId}:`, result.error);
+            return null;
           }
           
-          const competition = (result.data as any)?.data?.competition || 
-                            (result.data as any)?.competition || 
-                            (result.data as any)?.data;
-          
-          
-          return { team_id: teamId, competition };
+          console.log(`Competição ${competitionId} encontrada:`, result.data);
+          return result.data;
         } catch (error) {
-          toast.error(`Erro ao buscar competição da equipe ${teamId}`);
-          return { team_id: teamId, competition: null };
+          console.error(`Erro ao buscar competição ${competitionId}:`, error);
+          return null;
         }
       });
 
       const competitions = await Promise.all(competitionsPromises);
-      return competitions.filter(c => c !== null);
+      return competitions.filter(Boolean);
     },
-    enabled: teamIds.length > 0,
+    enabled: !!requestsData && requestsData.length > 0,
     retry: 1
   });
 
@@ -146,63 +156,38 @@ export function useRequests() {
     enabled: allUserIds.length > 0
   });
 
-  const enrichedRequests: Request[] = React.useMemo(() => {
-    return requestsData?.map(request => {
-      const team = teamsData?.find(t => t.id === request.team_id);
-      const competition = competitionsData?.find(c => c.team_id === request.team_id);
+  const processedRequests = React.useMemo(() => {
+    if (!requestsData || !teamsData) return [];
+
+    return requestsData.map((request: any) => {
+      const teamData = teamsData.find((team: any) => team.id === request.team_id);
       
-      const user = request.user_id && Array.isArray(usersData) 
-        ? usersData.find((u: User) => u.matricula === request.user_id) 
-        : undefined;
-      
-      const enrichedTeam: TeamWithCompetition | undefined = team ? {
-        ...team,
-        competition: competition?.competition || null,
-        members: team.members?.map(member => {
-          const userInfo = Array.isArray(usersData) ? usersData.find((u: User) => {
-            return u.matricula === member.user_id;
-          }) : undefined;
-          
-          const enrichedMember = {
-            ...member,
-            name: userInfo?.nome || 'Usuário não encontrado',
-            registration: userInfo?.matricula || 'N/A',
-            course: userInfo?.curso || 'N/A'
-          };
-          
-          return enrichedMember;
-        }) || []
-      } : undefined;
-      
+      const competitionData = competitionsData?.find(
+        (comp: any) => comp?.id === request.competition_id
+      );
+
+      let userData = undefined; 
+      if (usersData && Array.isArray(usersData) && request.user_id) {
+        userData = usersData.find((user: any) => user.id === request.user_id);
+      }
+
       return {
         ...request,
-        team: enrichedTeam || {
-          id: request.team_id,
-          name: `Equipe ${request.team_id}`,
-          abbreviation: 'N/A',
-          created_at: '',
-          status: 'pendent',
-          campus_code: '',
-          members: [],
-          competition: null
-        },
-        user: user ? {
-          user_id: user.id.toString(),
-          name: user.nome,
-          registration: user.matricula,
-          course: user.curso
-        } : undefined
+        team: teamData ? {
+          ...teamData,
+          competition: competitionData || null
+        } : undefined,
+        user: userData
       };
-    }) || [];
-  }, [requestsData, teamsData, competitionsData, usersData]);
+    });
+  }, [requestsData, teamsData, competitionsData, usersData]); // ✅ Adicionar usersData como dependência
 
   return {
-    requests: enrichedRequests,
-    isLoading: isLoadingRequests || isLoadingUsers,
-    error: requestsError || usersError,
-    refetch: refetchRequests,
+    requests: processedRequests,
+    isLoading: isLoadingRequests || isLoadingTeams || isLoadingCompetitions,
+    error: requestsError || teamsError || competitionsError,
     updateRequest: updateRequestMutation.mutate,
     isUpdating: updateRequestMutation.isPending,
     updateError: updateRequestMutation.error
   };
-} 
+}

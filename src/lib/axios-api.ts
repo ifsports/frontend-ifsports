@@ -1,6 +1,5 @@
 "use server";
 
-import { APIError } from "@/types/api"
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import axios, { AxiosError } from "axios";
@@ -32,21 +31,27 @@ export const axiosAPI = async <TypeResponse>({
     if (withAuth) {
         const session = await getServerSession(authOptions);
 
-        console.log("Session completa:", session);
-        console.log("Access token:", session?.accessToken);
-
         if (session?.accessToken) {
             instance.defaults.headers.common[
                 "Authorization"
                 ] = `Bearer ${session.accessToken}`;
-            console.log("✅ Token enviado para API");
         } else {
-            console.log("❌ Access token não encontrado na session");
         }
     }
 
-    if (withAttachment) {
-        instance.defaults.headers.common["Content-Type"] = "multipart/form-data";
+    const config: any = {
+      method,
+      url: `${BASE_URL}${endpoint}`,
+      data,
+      params: queryParams,
+    };
+
+    if (withAttachment && data instanceof FormData) {
+      config.headers = {};
+    } else if (!withAttachment) {
+      config.headers = {
+        'Content-Type': 'application/json',
+      };
     }
 
     try {
@@ -77,7 +82,6 @@ export const axiosAPI = async <TypeResponse>({
             } else if (Array.isArray(errorData.errors)) {
                 message = errorData.errors.join(", ");
             } else {
-                // Se ainda for objeto, transforma em string legível
                 message = JSON.stringify(errorData);
             }
         }

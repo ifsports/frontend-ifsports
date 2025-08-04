@@ -17,6 +17,7 @@ export interface Request {
   id: string;
   team_id: string;
   user_id?: string;
+  competition_id?: string;
   campus_code: string;
   request_type: RequestTypeEnum;
   reason?: string;

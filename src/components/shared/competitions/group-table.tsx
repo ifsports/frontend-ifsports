@@ -33,6 +33,11 @@ export default function GroupTable({ groupName, classifications, teams }: GroupT
             </tr>
           </thead>
           <tbody>
+            {classifications.length === 0 && (
+              <tr className="text-center text-gray-500">
+                <td colSpan={7} className="py-4">Nenhuma classificação disponível</td>
+              </tr>
+            )}
             {classifications.map((c) => {
               let teamName = c.team?.name;
 
@@ -53,6 +58,7 @@ export default function GroupTable({ groupName, classifications, teams }: GroupT
                 </tr>
               );
             })}
+            
           </tbody>
         </table>
       </div>

@@ -8,6 +8,7 @@ import ActionButton from '@/components/shared/action-button';
 import { useRequests } from '@/hooks/useRequests';
 import { RequestStatusEnum, RequestTypeEnum, type Request } from '@/types/requests';
 import type { TeamMember } from '@/types/team';
+import { toast } from 'sonner';
 
 export interface Team {
   id: string;
@@ -99,16 +100,16 @@ export default function RequestsPage() {
   const handleSubmit = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!decision) {
-      alert("Por favor, selecione 'Aprovar' ou 'Negar' a solicitação.");
+      toast.info("Por favor, selecione 'Aprovar' ou 'Negar' a solicitação.");
       return;
     }
     if (decision === 'deny' && !rejectionReason) {
-      alert('Por favor, forneça um motivo para negar a solicitação.');
+      toast.info('Por favor, forneça um motivo para negar a solicitação.');
       return;
     }
     
     if (!selectedRequest) {
-      alert('Nenhuma solicitação selecionada.');
+      toast.info('Nenhuma solicitação selecionada.');
       return;
     }
 
@@ -121,11 +122,11 @@ export default function RequestsPage() {
       { requestId: selectedRequest.id, payload },
       {
         onSuccess: () => {
-          alert(decision === 'approve' ? 'Solicitação aprovada com sucesso!' : 'Solicitação rejeitada com sucesso!');
+          toast.success(decision === 'approve' ? 'Solicitação aprovada com sucesso!' : 'Solicitação rejeitada com sucesso!');
           handleCloseDialog();
         },
         onError: (error) => {
-          alert(`Erro ao ${decision === 'approve' ? 'aprovar' : 'rejeitar'} solicitação: ${error.message}`);
+          toast.error(`Erro ao ${decision === 'approve' ? 'aprovar' : 'rejeitar'} solicitação: ${error.message}`);
         }
       }
     );

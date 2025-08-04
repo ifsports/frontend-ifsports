@@ -9,10 +9,11 @@ import type { Team } from "@/types/team";
 import KnockoutMatchCard from "./knockout-match-card";
 import Link from "next/link";
 import ActionButton from "../action-button";
-import { patchFinishCompetition, patchStartCompetition } from "@/lib/requests/competitions";
+import { generateMatchesCompetition, patchFinishCompetition, patchStartCompetition } from "@/lib/requests/competitions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import CustomDialog from "../custom-dialog";
+import type { group } from "console";
 dayjs.locale('pt-br');
 
 interface KnockoutCompetitionProps {
@@ -34,6 +35,17 @@ export default function KnockoutCompetition({
   const [endCompDialogOpen, setEndCompDialogOpen] = useState(false);
 
   const router = useRouter();
+
+  const handleGenerateMatches = async () => {
+    const result = await generateMatchesCompetition(competition.id);
+    
+    if (result.success) {
+      toast.success("Partidas geradas com sucesso!");
+      window.location.reload();
+    } else {
+      toast.error(result.error);
+    }
+  }
 
   const handleStartCompetition = async () => {
     const result = await patchStartCompetition(competition.id);
@@ -159,14 +171,21 @@ export default function KnockoutCompetition({
               </h1>
             </div>
 
-            {competition.status === "not-started" && (
-              <ActionButton variant="primary" className="py-4 px-4 border-0 w-full rounded-lg text-center font-bold cursor-pointer bg-[#4CAF50] text-white" onClick={handleStartCompetition}>
-                Iniciar competição
-              </ActionButton>
-            )}
+            <div className='flex items-center gap-4'>
+              {competition.status === "not-started" && (
+                rounds.length > 0 ? (
+                  <ActionButton variant="primary" className="py-4 px-4 border-0 rounded-lg text-center font-semibold cursor-pointer bg-[#4CAF50] text-white" onClick={handleStartCompetition}>
+                    Iniciar competição
+                  </ActionButton>
+                ) : (
+                <ActionButton variant="primary" className="py-4 px-4 border-0 rounded-lg text-center font-semibold cursor-pointer bg-[#4CAF50] text-white" onClick={handleGenerateMatches}>
+                  Gerar partidas
+                </ActionButton>
+              ))}
+            </div>
 
             {competition.status === "in-progress" && (
-              <ActionButton variant="primary" className="py-4 px-4 border-0 w-full rounded-lg text-center font-bold cursor-pointer bg-red-600 text-white"
+              <ActionButton variant="primary" className="py-4 px-4 border-0 rounded-lg text-center font-bold cursor-pointer bg-red-600 text-white"
                 type="button"
                 onClick={() => setEndCompDialogOpen(true)}
               >

@@ -319,3 +319,17 @@ export async function createCompetition({ data }: { data: FormData }) {
     return { success: false, error: error.message };
   }
 }
+
+export async function generateMatchesCompetition(competitionId: string) {
+  try {
+    const result = await axiosAPI<Match[]>({
+      endpoint: `/competitions/${competitionId}/generate/`,
+      method: "POST"
+    });
+
+    return { success: true, data: result.data };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
