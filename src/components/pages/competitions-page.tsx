@@ -609,7 +609,7 @@ export default function CompetitionPage({ competitionId, campusId, variant="stud
             const groupTeams = teamsByGroup[groupId] || [];
             const groupMatches = matchesByGroup[groupId] || [];
             
-            let finalGroupMatches = [...groupMatches];
+            const finalGroupMatches = [...groupMatches];
             
             const expectedMatches = (groupTeams.length * (groupTeams.length - 1)) / 2;
             

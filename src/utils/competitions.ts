@@ -23,7 +23,7 @@ export function populateCompetitionStages(
   competition: Omit<Competition, 'stages'>,
   options: PopulateOptions
 ): Competition {
-  let generatedStages: Stage[] = [];
+  const generatedStages: Stage[] = [];
 
   switch (competition.system) {
     case 'groups_elimination': {

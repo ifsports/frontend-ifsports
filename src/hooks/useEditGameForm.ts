@@ -7,8 +7,8 @@ export const useEditGameForm = (selectedGame?: Match) => {
   const form = useForm<EditGameFormData>({
     resolver: zodResolver(editGameSchema),
     defaultValues: {
-      team_home: selectedGame?.team_home?.team_id || '',
-      team_away: selectedGame?.team_away?.team_id || '',
+      team_home_id: selectedGame?.team_home?.team_id || '',
+      team_away_id: selectedGame?.team_away?.team_id || '',
       date: selectedGame?.scheduled_datetime 
         ? new Date(selectedGame.scheduled_datetime).toISOString().split('T')[0] 
         : '',
