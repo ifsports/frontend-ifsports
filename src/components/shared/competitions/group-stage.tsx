@@ -7,6 +7,10 @@ import KnockoutRoundView from './knockout-round-view';
 import type { Team } from '@/types/team';
 import Link from 'next/link';
 import ActionButton from '../action-button';
+import { patchFinishCompetition, patchStartCompetition } from '@/lib/requests/competitions';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import CustomDialog from '../custom-dialog';
 
 interface GroupStageCompetitionProps {
   competition: Competition;
@@ -86,6 +90,29 @@ export default function GroupStageCompetition({
   variant="student",
   onEditMatchClick
 }: GroupStageCompetitionProps) {
+  const [endCompDialogOpen, setEndCompDialogOpen] = useState(false);
+
+  const router = useRouter();
+
+  const handleStartCompetition = async () => {
+    const result = await patchStartCompetition(competition.id);
+    if (result.success) {
+      toast.success("Competição iniciada com sucesso!");
+      window.location.reload();
+    } else {
+      toast.error(result.error);
+    }
+  };
+
+  const handleEndCompetition = async () => {
+    const result = await patchFinishCompetition(competition.id);
+    if (result.success) {
+      toast.success("Competição encerrada com sucesso!");
+      router.push("/organizador/competicoes")
+    } else {
+      toast.error(result.error);
+    }
+  };
   
   const calculatedKnockoutRounds = useMemo(() => {
     if (competition.system === 'groups_elimination') {
@@ -93,12 +120,9 @@ export default function GroupStageCompetition({
       const teamsQualifiedPerGroup = competition.teams_qualified_per_group || 2;
       const totalQualifiedTeams = numGroups * teamsQualifiedPerGroup;
       
-      // Verifica se todas as partidas da fase de grupos estão finalizadas
       const allGroupMatches = groups.flatMap(group => group.rounds.flatMap(round => round.matches));
       const allGroupMatchesFinished = allGroupMatches.length > 0 && allGroupMatches.every(match => match.status === 'finished');
       
-      // Se as partidas da fase de grupos não estão finalizadas, calcula as próximas fases
-      // independentemente de ter rodadas reais da API
       if (!allGroupMatchesFinished && totalQualifiedTeams > 1 && groups.length > 0) {
         const phaseNames = calculateKnockoutPhases(totalQualifiedTeams);
         let teamsInCurrentPhase = totalQualifiedTeams;
@@ -106,7 +130,7 @@ export default function GroupStageCompetition({
         return phaseNames.map((phaseName, index) => {
           const numMatches = Math.floor(teamsInCurrentPhase / 2);
           const matches = generatePlaceholderMatches(phaseName, numMatches, competition.id);
-          teamsInCurrentPhase = Math.ceil(teamsInCurrentPhase / 2); // Corrigido: calcula quantos times avançam
+          teamsInCurrentPhase = Math.ceil(teamsInCurrentPhase / 2);
           
           return {
             id: `calculated-${phaseName.toLowerCase().replace(/\s+/g, '-')}`,
@@ -116,7 +140,6 @@ export default function GroupStageCompetition({
         });
       }
       
-      // Se as partidas da fase de grupos estão finalizadas, usa as rodadas reais da API
       if (allGroupMatchesFinished && knockoutRounds && knockoutRounds.length > 0) {
         return knockoutRounds;
       }
@@ -128,7 +151,6 @@ export default function GroupStageCompetition({
   const allDisplayStages = useMemo(() => {
     const stages = [{ key: 'group-stage', name: 'FASE DE GRUPOS' }];
     
-    // Só adiciona as próximas fases se elas existem
     if (calculatedKnockoutRounds.length > 0) {
       stages.push(...calculatedKnockoutRounds.map(round => ({ key: round.id, name: round.name })));
     }
@@ -154,12 +176,22 @@ export default function GroupStageCompetition({
             </Link>
             <h1 className="text-2xl font-bold font-title text-[#062601]">{competition.name}</h1>
           </div>
-          <ActionButton
-            variant="danger"
-            className="bg-red-600 text-white cursor-pointer px-6 py-2.5 rounded-lg font-semibold"
-          >
-            Encerrar competição
-          </ActionButton>
+
+          {competition.status === "not-started" && (
+            <ActionButton variant="primary" className="py-4 px-4 border-0 w-full rounded-lg text-center font-bold cursor-pointer bg-[#4CAF50] text-white" onClick={handleStartCompetition}>
+              Iniciar competição
+            </ActionButton>
+          )}
+
+          {competition.status === "in-progress" && (
+            <ActionButton variant="primary" className="py-4 px-4 border-0 w-full rounded-lg text-center font-bold cursor-pointer bg-red-600 text-white"
+              type="button"
+              onClick={() => setEndCompDialogOpen(true)}
+            >
+              Encerrar competição
+            </ActionButton>
+          )}
+
         </div>
       )}
 
@@ -221,6 +253,21 @@ export default function GroupStageCompetition({
           )
         )}
       </div>
+
+      <CustomDialog
+        open={endCompDialogOpen}
+        onClose={() => setEndCompDialogOpen(false)}
+        title="Encerrar competição"
+      >
+        <div className="flex flex-col gap-4">
+          <p>Tem certeza que deseja encerrar esta competição? Esta ação não pode ser desfeita.</p>
+          <div className="flex justify-end gap-4 mt-3">
+            <ActionButton variant="danger" onClick={handleEndCompetition}>
+              Encerrar
+            </ActionButton>
+          </div>
+        </div>
+      </CustomDialog>
     </>
   );
 }

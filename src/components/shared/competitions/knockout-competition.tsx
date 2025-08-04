@@ -9,6 +9,10 @@ import type { Team } from "@/types/team";
 import KnockoutMatchCard from "./knockout-match-card";
 import Link from "next/link";
 import ActionButton from "../action-button";
+import { patchFinishCompetition, patchStartCompetition } from "@/lib/requests/competitions";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import CustomDialog from "../custom-dialog";
 dayjs.locale('pt-br');
 
 interface KnockoutCompetitionProps {
@@ -16,8 +20,7 @@ interface KnockoutCompetitionProps {
   teams: Team[];
   rounds: RoundData[];
   variant?: "student" | "organizer";
-  // Adicionar a prop onEditMatchClick
-  onEditMatchClick: (match: Match) => void; // <-- Nova prop
+  onEditMatchClick: (match: Match) => void;
 }
 
 export default function KnockoutCompetition({
@@ -25,9 +28,32 @@ export default function KnockoutCompetition({
   teams = [],
   rounds = [],
   variant = "student",
-  onEditMatchClick // <-- Receber a prop
+  onEditMatchClick
 }: KnockoutCompetitionProps) {
   const [currentRoundIndex, setCurrentRoundIndex] = useState(0);
+  const [endCompDialogOpen, setEndCompDialogOpen] = useState(false);
+
+  const router = useRouter();
+
+  const handleStartCompetition = async () => {
+    const result = await patchStartCompetition(competition.id);
+    if (result.success) {
+      toast.success("Competição iniciada com sucesso!");
+      window.location.reload();
+    } else {
+      toast.error(result.error);
+    }
+  };
+
+  const handleEndCompetition = async () => {
+    const result = await patchFinishCompetition(competition.id);
+    if (result.success) {
+      toast.success("Competição encerrada com sucesso!");
+      router.push("/organizador/competicoes")
+    } else {
+      toast.error(result.error);
+    }
+  };
 
   const getTeamById = (teamId: string): Team | undefined => {
     return teams.find(team => team.id === teamId);
@@ -45,11 +71,10 @@ export default function KnockoutCompetition({
   const canGoNext = currentRoundIndex < rounds.length - 1;
   const currentRound = rounds[currentRoundIndex];
 
-  // Função para organizar as partidas em linhas (mantido como estava)
   const organizeMatchesInRows = (matches: Match[]) => {
     const rows = [];
-    const itemsPerRow = matches.length > 2 ? 2 : matches.length; // Max 2 items per row
-    if (matches.length === 0) return []; // Avoid infinite loop if matches is empty
+    const itemsPerRow = matches.length > 2 ? 2 : matches.length;
+    if (matches.length === 0) return [];
     for (let i = 0; i < matches.length; i += itemsPerRow > 0 ? itemsPerRow : 1) {
       rows.push(matches.slice(i, i + itemsPerRow));
     }
@@ -65,7 +90,6 @@ export default function KnockoutCompetition({
       );
     }
 
-    // Renderiza uma única partida centralizada
     if (currentRound.matches.length === 1) {
       const match = currentRound.matches[0];
       const homeTeam = match.team_home ? getTeamById(match.team_home.team_id) : undefined;
@@ -85,7 +109,6 @@ export default function KnockoutCompetition({
       );
     }
 
-    // Renderiza múltiplas partidas organizadas em linhas
     const rows = organizeMatchesInRows(currentRound.matches);
 
     return (
@@ -123,61 +146,84 @@ export default function KnockoutCompetition({
   }
 
   return (
-    <div className="w-full">
-      {variant === "organizer" && (
-        <div className="flex justify-between items-center mb-10">
-          <div className="flex items-center gap-4">
-            <Link href="/organizador/competicoes" className="h-4 flex items-center text-black">
-              <ChevronLeft size={22} />
-            </Link>
-            <h1 className="text-2xl font-bold font-title text-[#062601]">
-              {competition.name}
-            </h1>
+    <>
+      <div className="w-full">
+        {variant === "organizer" && (
+          <div className="flex justify-between items-center mb-10">
+            <div className="flex items-center gap-4">
+              <Link href="/organizador/competicoes" className="h-4 flex items-center text-black">
+                <ChevronLeft size={22} />
+              </Link>
+              <h1 className="text-2xl font-bold font-title text-[#062601]">
+                {competition.name}
+              </h1>
+            </div>
+
+            {competition.status === "not-started" && (
+              <ActionButton variant="primary" className="py-4 px-4 border-0 w-full rounded-lg text-center font-bold cursor-pointer bg-[#4CAF50] text-white" onClick={handleStartCompetition}>
+                Iniciar competição
+              </ActionButton>
+            )}
+
+            {competition.status === "in-progress" && (
+              <ActionButton variant="primary" className="py-4 px-4 border-0 w-full rounded-lg text-center font-bold cursor-pointer bg-red-600 text-white"
+                type="button"
+                onClick={() => setEndCompDialogOpen(true)}
+              >
+                Encerrar competição
+              </ActionButton>
+            )}
           </div>
-          <ActionButton
-            variant="danger"
-            className="bg-red-600 text-white cursor-pointer px-6 py-2.5 rounded-lg font-semibold"
-            // Se houver uma lógica para "Encerrar Competição" no Knockout, ela estaria aqui.
-            // Por enquanto, apenas para demonstrar a ActionButton.
-            onClick={() => console.log("Encerrar Competição (Knockout)")}
+        )}
+        <div className={`flex items-center justify-between gap-4 pb-4 border-b border-gray-300 ${variant === "student" ? 'mt-16' : ''} `}>
+          <button
+            onClick={handlePrevStage}
+            disabled={!canGoPrev}
+            className={`p-2 rounded-full transition-colors ${
+              canGoPrev ? "text-[#4CAF50] hover:bg-green-100" : "text-gray-400 cursor-not-allowed"
+            }`}
+            aria-label="Fase anterior"
           >
-            Encerrar competição
-          </ActionButton>
-        </div>
-      )}
-      <div className={`flex items-center justify-between gap-4 pb-4 border-b border-gray-300 ${variant === "student" ? 'mt-16' : ''} `}>
-        <button
-          onClick={handlePrevStage}
-          disabled={!canGoPrev}
-          className={`p-2 rounded-full transition-colors ${
-            canGoPrev ? "text-[#4CAF50] hover:bg-green-100" : "text-gray-400 cursor-not-allowed"
-          }`}
-          aria-label="Fase anterior"
-        >
-          <ChevronLeft size={24} />
-        </button>
+            <ChevronLeft size={24} />
+          </button>
 
-        <div className="flex-1 text-center">
-          <h3 className="text-2xl text-[#062601] font-title font-bold uppercase">
-            {currentRound?.name || "Fase Eliminatória"}
-          </h3>
+          <div className="flex-1 text-center">
+            <h3 className="text-2xl text-[#062601] font-title font-bold uppercase">
+              {currentRound?.name || "Fase Eliminatória"}
+            </h3>
+          </div>
+
+          <button
+            onClick={handleNextStage}
+            disabled={!canGoNext}
+            className={`p-2 rounded-full transition-colors ${
+              canGoNext ? "text-[#4CAF50] hover:bg-green-100" : "text-gray-400 cursor-not-allowed"
+            }`}
+            aria-label="Próxima fase"
+          >
+            <ChevronRight size={24} />
+          </button>
         </div>
 
-        <button
-          onClick={handleNextStage}
-          disabled={!canGoNext}
-          className={`p-2 rounded-full transition-colors ${
-            canGoNext ? "text-[#4CAF50] hover:bg-green-100" : "text-gray-400 cursor-not-allowed"
-          }`}
-          aria-label="Próxima fase"
-        >
-          <ChevronRight size={24} />
-        </button>
+        <div className="mt-8">
+          {renderMatches()}
+        </div>
       </div>
 
-      <div className="mt-8">
-        {renderMatches()}
-      </div>
-    </div>
+      <CustomDialog
+        open={endCompDialogOpen}
+        onClose={() => setEndCompDialogOpen(false)}
+        title="Encerrar competição"
+      >
+        <div className="flex flex-col gap-4">
+          <p>Tem certeza que deseja encerrar esta competição? Esta ação não pode ser desfeita.</p>
+          <div className="flex justify-end gap-4 mt-3">
+            <ActionButton variant="danger" onClick={handleEndCompetition}>
+              Encerrar
+            </ActionButton>
+          </div>
+        </div>
+      </CustomDialog>
+    </>
   );
 }

@@ -9,6 +9,9 @@ import GroupTable from "./group-table";
 import ActionButton from "../action-button";
 import CustomDialog from "../custom-dialog";
 import MatchCard from "./match-card";
+import { patchFinishCompetition, patchStartCompetition } from "@/lib/requests/competitions";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface PointsCompetitionProps {
   competition: Competition;
@@ -30,6 +33,8 @@ export default function PointsCompetition({
   const [activeRoundIndex, setActiveRoundIndex] = useState(0);
   const [endCompDialogOpen, setEndCompDialogOpen] = useState(false);
 
+  const router = useRouter();
+
   const mainGroup = groups[0];
 
   if (!mainGroup) {
@@ -40,9 +45,24 @@ export default function PointsCompetition({
     );
   }
 
-  const handleEndCompetition = () => {
-    setEndCompDialogOpen(false);
-    onMatchUpdated();
+  const handleStartCompetition = async () => {
+    const result = await patchStartCompetition(competition.id);
+    if (result.success) {
+      toast.success("Competição iniciada com sucesso!");
+      window.location.reload();
+    } else {
+      toast.error(result.error);
+    }
+  };
+
+  const handleEndCompetition = async () => {
+    const result = await patchFinishCompetition(competition.id);
+    if (result.success) {
+      toast.success("Competição encerrada com sucesso!");
+      router.push("/organizador/competicoes")
+    } else {
+      toast.error(result.error);
+    }
   };
 
   return (
@@ -55,22 +75,31 @@ export default function PointsCompetition({
             </Link>
             <h1 className="text-2xl font-bold font-title text-[#062601]">{competition.name}</h1>
           </div>
-          <ActionButton
-            variant="danger"
-            onClick={() => setEndCompDialogOpen(true)}
-            className="bg-red-600 text-white cursor-pointer px-6 py-2.5 rounded-lg font-semibold"
-          >
-            Encerrar competição
-          </ActionButton>
+
+          <div>
+            {competition.status === "not-started" && (
+              <ActionButton variant="primary" className="py-4 px-4 border-0 w-full rounded-lg text-center font-bold cursor-pointer bg-[#4CAF50] text-white" onClick={handleStartCompetition}>
+                Iniciar competição
+              </ActionButton>
+            )}
+
+            {competition.status === "in-progress" && (
+              <ActionButton variant="primary" className="py-4 px-4 border-0 w-full rounded-lg text-center font-bold cursor-pointer bg-red-600 text-white"
+                type="button"
+                onClick={() => setEndCompDialogOpen(true)}
+              >
+                Encerrar competição
+              </ActionButton>
+            )}
+          </div>
         </div>
       )}
 
       <div className="mb-12">
-        <div className="flex flex-col gap-4 mb-8">
+        <div className="flex flex-col gap-4">
           {variant === "student" && (
             <h3 className="text-2xl text-[#062601] font-title font-bold">TABELA</h3>
           )}
-          <hr className="border-gray-300" />
         </div>
         <GroupTable groupName="Geral" classifications={mainGroup.classifications} teams={teams} />
       </div>
@@ -110,15 +139,9 @@ export default function PointsCompetition({
       >
         <div className="flex flex-col gap-4">
           <p>Tem certeza que deseja encerrar esta competição? Esta ação não pode ser desfeita.</p>
-          <div className="flex justify-end gap-4">
-            <button
-              onClick={() => setEndCompDialogOpen(false)}
-              className="px-4 py-2 border border-[#d9e1e7] rounded-lg text-[#062601] hover:bg-gray-50"
-            >
-              Cancelar
-            </button>
-            <ActionButton onClick={handleEndCompetition}>
-              Confirmar
+          <div className="flex justify-end gap-4 mt-3">
+            <ActionButton variant="danger" onClick={handleEndCompetition}>
+              Encerrar
             </ActionButton>
           </div>
         </div>

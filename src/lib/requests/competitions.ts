@@ -206,3 +206,29 @@ export async function putEditGame({ matchId, data } : { matchId: string, data: o
     return { success: false, error: error.message };
   }
 }
+
+export async function patchStartCompetition(competitionId: string) {
+  try {
+    const result = await axiosAPI<Competition>({
+      endpoint: `/competitions/${competitionId}/start/`,
+      method: "PATCH"
+    });
+    return { success: true, data: result.data };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
+
+export async function patchFinishCompetition(competitionId: string) {
+  try {
+    const result = await axiosAPI<Competition>({
+      endpoint: `/competitions/${competitionId}/finish/`,
+      method: "PATCH"
+    });
+    return { success: true, data: result.data };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
