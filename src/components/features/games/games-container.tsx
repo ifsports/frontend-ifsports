@@ -18,6 +18,7 @@ import { Search } from "lucide-react";
 import { campusData } from "@/lib/campus";
 import { useCompetitions } from "@/hooks/useCompetitions";
 import { useMatches } from "@/hooks/useMatches";
+import { useCampusCode } from "@/hooks/useCampusCode";
 
 const MATCHES_PER_PAGE = 6;
 
@@ -27,6 +28,14 @@ export default function GamesContainer() {
     const [isCampusSelected, setIsCampusSelected] = useState(false);
     const [isCompetitionSelected, setIsCompetitionSelected] = useState(false);
     const [page, setPage] = useState(1);
+
+    const campusSelect = useCampusCode();
+
+    useEffect(() => {
+        if (!campusSelect) return;
+        setSelectedCampus(campusSelect);
+        setIsCampusSelected(true);
+    }, [campusSelect])
 
     const { 
         data: competitions, 
