@@ -11,6 +11,7 @@ interface APIProps {
     data?: object;
     queryParams?: object;
     withAuth?: boolean;
+    withAttachment?: boolean;
 }
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + "/api/v1";
@@ -21,6 +22,7 @@ export const axiosAPI = async <TypeResponse>({
                                                  data,
                                                  queryParams,
                                                  withAuth = true,
+                                                 withAttachment = false,
                                              }: APIProps) => {
 
     const instance = axios.create({
@@ -41,6 +43,10 @@ export const axiosAPI = async <TypeResponse>({
         } else {
             console.log("❌ Access token não encontrado na session");
         }
+    }
+
+    if (withAttachment) {
+        instance.defaults.headers.common["Content-Type"] = "multipart/form-data";
     }
 
     try {

@@ -1,7 +1,6 @@
 import type { RawStanding } from "@/components/pages/competitions-page";
 import {axiosAPI} from "@/lib/axios-api";
 import {APIGetCompetitions, type APIGetTeamInCompetition, type Competition, type CompetitionTeam, type Match, type Modality, type PaginatedResponse, type RoundData, type TeamClassification} from "@/types/competition";
-import type { Team } from "@/types/team";
 
 export const getCompetitionsNoAuth = async (campus_code: { campus_code: string }) => {
     const result = await axiosAPI<APIGetCompetitions>({
@@ -192,6 +191,20 @@ export async function getModalityDetails(modalityId: string) {
   }
 }
 
+export async function getModalities() {
+  try {
+    const result = await axiosAPI<Modality[]>({
+      endpoint: `/modalities/`,
+      method: "GET"
+    });
+
+    return { success: true, data: result.data };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
+
 
 export async function putEditGame({ matchId, data } : { matchId: string, data: object }) {
   try {
@@ -226,6 +239,80 @@ export async function patchFinishCompetition(competitionId: string) {
       endpoint: `/competitions/${competitionId}/finish/`,
       method: "PATCH"
     });
+    return { success: true, data: result.data };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
+
+export async function createModality({ data } : { data: { name: string } }) {
+  try {
+    const result = await axiosAPI<Modality>({
+      endpoint: `/modalities/`,
+      method: "POST",
+      data
+    });
+
+    return { success: true, data: result.data };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
+
+export async function putModality({ data, modality_id } : { data: { name: string }, modality_id: string }) {
+  try {
+    const result = await axiosAPI<Modality>({
+      endpoint: `/modalities/${modality_id}/`,
+      method: "PUT",
+      data
+    });
+
+    return { success: true, data: result.data };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteModality(modality_id: string) {
+  try {
+    const result = await axiosAPI<Modality>({
+      endpoint: `/modalities/${modality_id}/`,
+      method: "DELETE"
+    });
+
+    return { success: true, data: result.data };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteCompetition(competition_id: string) {
+  try {
+    const result = await axiosAPI<Competition>({
+      endpoint: `/competitions/${competition_id}/`,
+      method: "DELETE"
+    });
+
+    return { success: true, data: result.data };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
+
+export async function createCompetition({ data }: { data: FormData }) {
+  try {
+    const result = await axiosAPI<Competition>({
+      endpoint: `/competitions/`,
+      method: "POST",
+      data,
+      withAttachment: true
+    });
+
     return { success: true, data: result.data };
   } catch (err) {
     const error = err as Error;
