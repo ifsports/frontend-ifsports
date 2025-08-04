@@ -1,4 +1,4 @@
-import type { APIGetTeamsFromCampus, CreateTeamPayload } from "@/types/team";
+import type { APIGetTeamsFromCampus, CreateTeamPayload, Team } from "@/types/team";
 import { axiosAPI } from "../axios-api";
 
 export const getTeamFromCampusAuth = async (status: { status: string }) => {
@@ -12,7 +12,7 @@ export const getTeamFromCampusAuth = async (status: { status: string }) => {
 
 export const getAllTeams = async () => {
     try {
-        const result = await axiosAPI<APIGetTeamsFromCampus>({
+        const result = await axiosAPI<Team[]>({
             endpoint: `/teams/`,
             method: "GET"
         })
@@ -51,7 +51,7 @@ export const getTeamFromCampusNoAuth = async (campus: { campus: string }) => {
 export const getTeamById = async (teamId: string) => {
     try {
         const result = await axiosAPI({
-            endpoint: `/teams/${teamId}/`,
+            endpoint: `/teams/${teamId}`,
             method: "GET"
         })
 
