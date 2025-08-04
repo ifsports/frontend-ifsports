@@ -69,3 +69,62 @@ export const getUserFromMessage = async ({ user_id }: { user_id: string; }) => {
 
     return result;
 }
+
+export const patchStartMatch = async (match_id: string) => {
+  try {
+    const result = await axiosAPI<MatchLive>({
+      endpoint: `/matches/${match_id}/start-match`,
+      method: "PATCH",
+    });
+
+    return { success: true, data: result };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
+
+export const deleteFinishMatch = async (match_id: string) => {
+  try {
+    const result = await axiosAPI<MatchLive>({
+      endpoint: `/matches/${match_id}/end-match`,
+      method: "DELETE",
+    });
+
+    return { success: true, data: result };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
+
+export const updateMatchScore = async (match_id: string, data: { score_home: number, score_away: number }) => {
+  try {
+    const result = await axiosAPI<MatchLive>({
+      endpoint: `/matches/${match_id}/update-score`,
+      method: "PATCH",
+      data
+    });
+
+    return { success: true, data: result };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
+
+export const createComment = async (match_id: string, data: { body: string }) => {
+  try {
+    const result = await axiosAPI<Comments>({
+      endpoint: `/matches/${match_id}/comments/`,
+      method: "POST",
+      data
+    });
+
+    return { success: true, data: result };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
+

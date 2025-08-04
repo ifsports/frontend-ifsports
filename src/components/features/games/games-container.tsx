@@ -75,7 +75,8 @@ export default function GamesContainer() {
                         <div className="flex">
                             <CompetitionsFilter 
                                 label="a competição" 
-                                data={competitionsFilterData} 
+                                data={competitionsFilterData}
+                                value={selectedCompetition}
                                 onChange={(value) => {
                                     console.log("Valor selecionado:", value);
                                     setSelectedCompetition(value);
@@ -95,6 +96,7 @@ export default function GamesContainer() {
                             <CompetitionsFilter 
                                 label="o campus" 
                                 data={campusData}
+                                value={selectedCampus}
                                 onChange={(value) => {
                                     setIsCompetitionSelected(false);
                                     setSelectedCompetition("");

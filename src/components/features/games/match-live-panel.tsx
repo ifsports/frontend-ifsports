@@ -2,6 +2,7 @@
 
 import ConfirmActionButton from "@/components/shared/action-button";
 import ActionButton from "@/components/shared/tables/action-button";
+import ActionButtonConfirm from "@/components/shared/action-button";
 import CustomDialog from "@/components/shared/custom-dialog";
 
 import { useTeams } from "@/hooks/useTeams";
@@ -9,6 +10,9 @@ import { socket } from "@/lib/socket-provider";
 import type { MatchLive } from "@/types/match-comments";
 import { Edit } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { deleteFinishMatch, patchStartMatch, updateMatchScore } from "@/lib/requests/match-comments";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface MatchLivePanelProps {
     campusId: string;
@@ -19,13 +23,22 @@ interface MatchLivePanelProps {
 type DialogType = 'editGame';
 
 export default function MatchLivePanel({ match, campusId, variant="student" } :  MatchLivePanelProps) {
-    const [scoreHome, setScoreHome] = useState(match?.score_home || 0);
-    const [scoreAway, setScoreAway] = useState(match?.score_away || 0);
+    const [scoreHome, setScoreHome] = useState(0);
+    const [scoreAway, setScoreAway] = useState(0);
     const [isEditScoreDialogOpen, setIsEditScoreDialogOpen] = useState(false);
     const [editScoreHome, setEditScoreHome] = useState(scoreHome);
     const [editScoreAway, setEditScoreAway] = useState(scoreAway);
 
     const { data: teams, isLoading: isLoadingTeams } = useTeams(campusId);
+
+    const router = useRouter();
+
+    useEffect(() => {
+        if (match) {
+            setScoreHome(match.score_home ?? 0);
+            setScoreAway(match.score_away ?? 0);
+        }
+    }, [match]);
 
     const homeTeam = useMemo(() => 
         teams?.find(t => t.id === match?.team_home_id), 
@@ -65,13 +78,41 @@ export default function MatchLivePanel({ match, campusId, variant="student" } : 
         setIsEditScoreDialogOpen(false);
     };
 
-    const handleConfirmScoreEdit = () => {
-        setScoreHome(editScoreHome);
-        setScoreAway(editScoreAway);
-
-        // enviar dados para o endpoint de placar
-
+    const handleConfirmScoreEdit = async () => {
+        const result = await updateMatchScore(match?.match_id || "", {
+            score_home: editScoreHome,
+            score_away: editScoreAway
+        });
+        
+        if (result.success) {
+            setScoreHome(editScoreHome);
+            setScoreAway(editScoreAway);
+        } else {
+            toast.error(result.error);
+        }
+        
         setIsEditScoreDialogOpen(false);
+    };
+
+    const handleUpdateMatchStatus = async (status: "start" | "finish") => {
+        if (status === "start") {
+            const result = await patchStartMatch(match?.match_id || "" );
+            if (result.success) {
+                toast.success("Partida iniciada com sucesso");
+                window.location.reload();
+            } else {
+                toast.error(result.error);
+            }
+        } else if (status === "finish") {
+            const result = await deleteFinishMatch(match?.match_id || "" );
+
+            if (result.success) {
+                toast.success("Partida encerrada com sucesso");
+                router.push("/organizador/partidas");
+            } else {
+                toast.error(result.error);
+            }
+        }
     };
 
     if (isLoadingTeams) {
@@ -100,8 +141,8 @@ export default function MatchLivePanel({ match, campusId, variant="student" } : 
 
     return (
         <>
-            <div className="border border-[#E2E8F0] bg-white w-full rounded-sm h-full flex flex-col items-center justify-center relative">
-                {variant === "organizer" && (
+            <div className={`border border-[#E2E8F0] bg-white w-full rounded-sm h-full flex flex-col items-center justify-center relative ${variant === "organizer" && 'py-8' }`}>
+                {variant === "organizer" && match?.status === "in-progress" && (
                     <ActionButton
                         onClick={handleOpenEditScoreDialog}
                         className="absolute top-4 right-4 text-[#4CAF50] font-semibold text-xs px-3 py-2 border border-gray-300 rounded-lg bg-white flex items-center gap-2 cursor-pointer hover:bg-gray-50"
@@ -109,6 +150,26 @@ export default function MatchLivePanel({ match, campusId, variant="student" } : 
                         text="Editar placar"
                     />
                 )}
+
+                {variant === "organizer" && ( match?.status === "pending" ? (
+                    <ActionButtonConfirm
+                        onClick={() => handleUpdateMatchStatus("start")}
+                        className="absolute top-4 left-4 text-[#4CAF50] font-semibold text-xs px-3 py-2 border border-gray-300 rounded-lg bg-white flex items-center gap-2 cursor-pointer hover:bg-gray-50"
+                        variant="primary"
+                    >
+                        Iniciar partida
+                    </ActionButtonConfirm>
+                ):(
+                    match?.status === "in-progress" && (
+                        <ActionButtonConfirm
+                            onClick={() => handleUpdateMatchStatus("finish")}
+                            className="absolute top-4 left-4 text-[#4CAF50] font-semibold text-xs px-3 py-2 border border-gray-300 rounded-lg bg-white flex items-center gap-2 cursor-pointer hover:bg-gray-50"
+                            variant="primary"
+                        >
+                            Encerrar partida
+                        </ActionButtonConfirm>
+                    )
+                ))}
 
                 { match?.status === "in-progress" ? (
                     <div className="flex items-center justify-center gap-2 bg-red-500 py-2 px-8 rounded-full">
@@ -163,7 +224,6 @@ export default function MatchLivePanel({ match, campusId, variant="student" } : 
                             <label className="font-semibold text-[#062601]">{homeTeam?.name} (Casa)</label>
                             <input
                                 type="number"
-                                min="0"
                                 value={editScoreHome}
                                 onChange={(e) => setEditScoreHome(Number(e.target.value))}
                                 className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:border-transparent"
@@ -174,7 +234,6 @@ export default function MatchLivePanel({ match, campusId, variant="student" } : 
                             <label className="font-semibold text-[#062601]">{awayTeam?.name} (Visitante)</label>
                             <input
                                 type="number"
-                                min="0"
                                 value={editScoreAway}
                                 onChange={(e) => setEditScoreAway(Number(e.target.value))}
                                 className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4CAF50] focus:border-transparent"

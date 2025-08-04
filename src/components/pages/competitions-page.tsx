@@ -386,7 +386,7 @@ export default function CompetitionPage({ competitionId, campusId, variant="stud
         setLoading(false);
       }
     }
-      
+
   useEffect(() => {
     fetchData();
   }, [competitionId, campusId]);
@@ -703,61 +703,61 @@ export default function CompetitionPage({ competitionId, campusId, variant="stud
           }
           
         } else {
-          const sortedUniqueGroupIds = Array.from(uniqueGroupIdsFromMatches).sort();
+        const sortedUniqueGroupIds = Array.from(uniqueGroupIdsFromMatches).sort();
 
-          const groupNamesMap: Record<string, string> = {};
-          sortedUniqueGroupIds.forEach((groupId, index) => {
+        const groupNamesMap: Record<string, string> = {};
+        sortedUniqueGroupIds.forEach((groupId, index) => {
             groupNamesMap[groupId] = `Grupo ${String.fromCharCode(65 + index)}`;
+        });
+
+        sortedUniqueGroupIds.forEach(groupId => {
+          const groupMatches = matchesByGroupId[groupId];
+          const groupName = groupNamesMap[groupId];
+
+          const teamIdsInGroup = new Set<string>();
+          groupMatches.forEach(match => {
+            if (match.team_home?.team_id) teamIdsInGroup.add(match.team_home.team_id);
+            if (match.team_away?.team_id) teamIdsInGroup.add(match.team_away.team_id);
           });
 
-          sortedUniqueGroupIds.forEach(groupId => {
-            const groupMatches = matchesByGroupId[groupId];
-            const groupName = groupNamesMap[groupId];
-
-            const teamIdsInGroup = new Set<string>();
-            groupMatches.forEach(match => {
-              if (match.team_home?.team_id) teamIdsInGroup.add(match.team_home.team_id);
-              if (match.team_away?.team_id) teamIdsInGroup.add(match.team_away.team_id);
-            });
-
-            const classifications: TeamClassification[] = Array.from(teamIdsInGroup)
-              .map(teamId => {
-                const team = teams.find(t => t.id === teamId);
+          const classifications: TeamClassification[] = Array.from(teamIdsInGroup)
+            .map(teamId => {
+              const team = teams.find(t => t.id === teamId);
                 return team ? createEmptyClassification(team, 0) : null;
-              })
-              .filter(Boolean) as TeamClassification[];
+            })
+            .filter(Boolean) as TeamClassification[];
 
-            const inferredGroupRoundsMap: Record<string, Match[]> = {};
-            groupMatches.forEach(match => {
-              const roundId = match.round || 'rodada-desconhecida';
-              if (!inferredGroupRoundsMap[roundId]) inferredGroupRoundsMap[roundId] = [];
-              inferredGroupRoundsMap[roundId].push(match);
-            });
+          const inferredGroupRoundsMap: Record<string, Match[]> = {};
+          groupMatches.forEach(match => {
+            const roundId = match.round || 'rodada-desconhecida';
+            if (!inferredGroupRoundsMap[roundId]) inferredGroupRoundsMap[roundId] = [];
+            inferredGroupRoundsMap[roundId].push(match);
+          });
 
-            const inferredGroupRounds: RoundData[] = Object.keys(inferredGroupRoundsMap).sort((a, b) => {
-              const numA = parseInt(a, 10);
-              const numB = parseInt(b, 10);
-              if (!isNaN(numA) && !isNaN(numB)) {
-                  return numA - numB;
-              }
-              return 0;
+          const inferredGroupRounds: RoundData[] = Object.keys(inferredGroupRoundsMap).sort((a, b) => {
+            const numA = parseInt(a, 10);
+            const numB = parseInt(b, 10);
+            if (!isNaN(numA) && !isNaN(numB)) {
+                return numA - numB;
+            }
+            return 0;
             }).map((roundId, index) => {
               const roundName = `Rodada ${index + 1}`;
               
               return {
-                id: roundId,
+            id: roundId,
                 name: roundName,
-                matches: inferredGroupRoundsMap[roundId]
+            matches: inferredGroupRoundsMap[roundId]
               };
             });
 
-            finalGroups.push({
-              id: groupId,
-              name: groupName,
-              classifications: classifications,
-              rounds: inferredGroupRounds,
-            });
+          finalGroups.push({
+            id: groupId,
+            name: groupName,
+            classifications: classifications,
+            rounds: inferredGroupRounds,
           });
+        });
         }
       }
       

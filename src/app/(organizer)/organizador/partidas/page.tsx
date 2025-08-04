@@ -36,6 +36,7 @@ export default function OrganizerGamesContainer() {
       
       if (!response.success) {
         toast.error(response.error);
+        console.log(response.error)
         return null;
       }
 
@@ -88,6 +89,7 @@ export default function OrganizerGamesContainer() {
                       <CompetitionsFilter 
                           label="a competição" 
                           data={competitionsFilterData} 
+                          value={selectedCompetition}
                           onChange={(value) => {
                               console.log("Valor selecionado:", value);
                               setSelectedCompetition(value);
@@ -144,7 +146,7 @@ export default function OrganizerGamesContainer() {
             )}
 
             {matches.length > 0 && !isLoadingMatches && (
-                <Pagination>
+                <Pagination className="mt-10">
                     <PaginationContent>
                         <PaginationItem>
                            <PaginationPrevious

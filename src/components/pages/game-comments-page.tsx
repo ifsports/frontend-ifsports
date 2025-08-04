@@ -27,10 +27,10 @@ export default function GameCommentsPage({ campusId, gameId } : GameCommentsPage
     return (
         <div className="mt-8 mb-12 w-full h-screen flex justify-between gap-4">
             <div className="flex flex-1 flex-col gap-4 h-full">
-                <div className="flex-1 overflow-hidden">
+                <div className="flex-1 overflow-hidden min-h-0">
                     <MatchLivePanel campusId={campusId} match={match} />
                 </div>
-                <div className="flex-1 overflow-hidden">
+                <div className="flex-1 min-h-0">
                     <GameEventsPanel match={match} gameId={gameId} />
                 </div>
             </div>

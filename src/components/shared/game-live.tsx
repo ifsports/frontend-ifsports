@@ -75,14 +75,14 @@ export default function GameLive({ matchData, competition, selectedCampus, varia
             </div>
 
             <div className="flex items-center justify-between gap-4 w-full">
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 items-center">
                     <div className="flex items-center justify-center w-16 h-16 rounded-full flex-shrink-0 bg-[#4CAF50]">
                         <p className="font-bold text-[#ffffff] text-sm">
                             {homeTeam?.abbreviation || "HC"}
                         </p>
                     </div>
                     <div className="flex items-center justify-center flex-col">
-                        <p className="font-medium text-sm text-center">
+                        <p className="font-medium text-sm text-center w-24 truncate">
                             {homeTeam?.name || "Equipe Casa"}
                         </p>
                         <p className="text-xs text-[#9CA4AB]">Casa</p>
@@ -97,14 +97,14 @@ export default function GameLive({ matchData, competition, selectedCampus, varia
                     )}
                 </div>
 
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 items-center">
                     <div className="flex items-center justify-center w-16 h-16 rounded-full flex-shrink-0 bg-[#4CAF50]">
                         <p className="font-bold text-[#ffffff] text-sm">
                             {awayTeam?.abbreviation || "AW"}
                         </p>
                     </div>
                     <div className="flex items-center justify-center flex-col">
-                        <p className="font-medium text-sm text-center">
+                        <p className="font-medium text-sm text-center w-24 truncate">
                             {awayTeam?.name || "Equipe Visitante"}
                         </p>
                         <p className="text-xs text-[#9CA4AB]">Visitante</p>
