@@ -956,7 +956,7 @@ export default function CompetitionPage({ competitionId, campusId, variant="stud
                 <input
                   type="date"
                   {...register('date')}
-                  className="p-2 border border-[#d9e1e7] rounded-lg"
+                  className="px-1 py-4 border border-[#d9e1e7] bg-white rounded-lg"
                 />
                 {errors.date && (
                   <span className="text-red-500 text-sm">{errors.date.message}</span>
@@ -968,7 +968,7 @@ export default function CompetitionPage({ competitionId, campusId, variant="stud
                 <input
                   type="time"
                   {...register('time')}
-                  className="p-2 border border-[#d9e1e7] rounded-lg"
+                  className="px-1 py-4 border border-[#d9e1e7] rounded-lg bg-white"
                 />
                 {errors.time && (
                   <span className="text-red-500 text-sm">{errors.time.message}</span>
@@ -979,7 +979,7 @@ export default function CompetitionPage({ competitionId, campusId, variant="stud
                 <label className="text-[#062601]">Rodada</label>
                 <select
                   {...register('round')}
-                  className="p-2 border border-[#d9e1e7] rounded-lg"
+                  className="px-1 py-4 border border-[#d9e1e7] rounded-lg bg-white"
                 >
                   <option value="">Selecione uma rodada (opcional)</option>
                   {rounds.filter(r => r.id !== 'rodada-desconhecida').map((round) => (
@@ -995,16 +995,6 @@ export default function CompetitionPage({ competitionId, campusId, variant="stud
             </div>
 
             <div className="flex justify-end gap-4 pt-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setEditGameDialogOpen(false);
-                  setSelectedGame(null);
-                }}
-                className="px-4 py-2 border border-[#d9e1e7] rounded-lg text-[#062601] hover:bg-gray-50"
-              >
-                Cancelar
-              </button>
               <ActionButton type="submit">
                 Confirmar alterações
               </ActionButton>

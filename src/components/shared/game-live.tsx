@@ -194,26 +194,29 @@ export default function GameLive({ matchData, competition, selectedCampus, varia
             href={`${variant === "organizer" ? `/organizador/partidas/${matchData?.match_id}` : `/jogos/${matchData?.match_id}`}/campus/${selectedCampus}`} 
             className="rounded-xl bg-white shadow-2xl flex flex-col gap-2 items-center pt-4 px-4 pb-6 hover:shadow-3xl transition-shadow duration-200 relative"
         >
-            <button
-                onClick={handleAddToCalendar}
-                disabled={
-                    isAddingToCalendar || 
-                    status === 'loading' || 
-                    !matchData?.hasSchedule
-                }
-                className={`absolute top-2 right-2 p-2 rounded-lg transition-colors ${
-                    !matchData?.hasSchedule
-                        ? 'text-gray-400 cursor-not-allowed'
-                        : 'text-gray-600 hover:text-[#4CAF50] hover:bg-gray-50'
-                } disabled:opacity-50`}
-                title={
-                    !matchData?.hasSchedule
-                        ? "Partida sem data/hora definida"
-                        : "Adicionar à agenda"
-                }
-            >
-                <CalendarPlus size={20} className={isAddingToCalendar ? 'animate-spin' : ''} />
-            </button>
+            { variant === "student" && (
+                <button
+                    onClick={handleAddToCalendar}
+                    disabled={
+                        isAddingToCalendar || 
+                        status === 'loading' || 
+                        !matchData?.hasSchedule
+                    }
+                    className={`absolute top-2 right-2 p-2 rounded-lg transition-colors ${
+                        !matchData?.hasSchedule
+                            ? 'text-gray-400 cursor-not-allowed'
+                            : 'text-gray-600 hover:text-[#4CAF50] hover:bg-gray-50'
+                    } disabled:opacity-50`}
+                    title={
+                        !matchData?.hasSchedule
+                            ? "Partida sem data/hora definida"
+                            : "Adicionar à agenda"
+                    }
+                >
+                    <CalendarPlus size={20} className={isAddingToCalendar ? 'animate-spin' : ''} />
+                </button>
+            )}
+            
 
             <div className="flex items-center gap-2 flex-col">
                 { matchData?.status === "in-progress" ? (
