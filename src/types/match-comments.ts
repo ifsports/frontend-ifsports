@@ -9,6 +9,11 @@ export interface MatchLive {
   status: string;
 }
 
+export interface EnrichedMatchLive extends MatchLive {
+  hasSchedule: boolean;
+  scheduled_datetime?: string;
+}
+
 export interface APIGetMatchesLiveFromCampus {
   matches: MatchLive[] | null;
 }

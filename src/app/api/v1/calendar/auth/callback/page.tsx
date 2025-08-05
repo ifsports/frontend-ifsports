@@ -13,18 +13,33 @@ export default function CalendarCallback() {
     useEffect(() => {
         const processCallback = async () => {
             try {
-                const status = searchParams.get('status');
-                const userEmail = searchParams.get('user_email');
-                
-                if (status === 'success' && userEmail) {
-                    toast.success('Autorização concluída com sucesso!');
-                    
+                const code = searchParams.get('code');
+                const state = searchParams.get('state');
+                const scope = searchParams.get('scope');
+
+                if (!code || !state) {
+                    toast.error('Parâmetros de autorização inválidos');
+                    setTimeout(() => router.push('/jogos'), 2000);
+                    return;
+                }
+
+                const backendUrl = `http://localhost:3000/api/v1/calendar/auth/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
+                console.log('🔗 URL do proxy:', backendUrl);
+
+                const authResponse = await fetch(backendUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (authResponse.status === 200) {
                     const savedEventData = localStorage.getItem('pending_calendar_event');
                     
                     if (savedEventData) {
                         const eventData = JSON.parse(savedEventData);
                         
-                        const response = await axiosAPI({
+                        const eventResponse = await axiosAPI({
                             endpoint: '/calendar/events/',
                             method: 'POST',
                             data: eventData,
@@ -34,20 +49,19 @@ export default function CalendarCallback() {
                         localStorage.removeItem('pending_calendar_event');
                         toast.success('Evento adicionado à sua agenda com sucesso!');
                     } else {
-                        toast.info('Autorização concluída, mas nenhum evento para criar.');
+                        toast.info('Autorização concluída! Você pode adicionar eventos ao calendário.');
                     }
-                } else {
-                    toast.error('Erro na autorização do calendário.');
-                }
 
-                setTimeout(() => {
-                    router.push('/jogos');
-                }, 2000);
-                
+                    setTimeout(() => {
+                        router.push('/jogos');
+                    }, 2000);
+                    
+                } else {
+                    throw new Error(`Backend retornou erro: ${authResponse.status}`);
+                }
             } catch (error) {
-                localStorage.removeItem('pending_calendar_event');
-                
-                toast.error('Erro ao criar evento no calendário.');
+              localStorage.removeItem('pending_calendar_event');
+                toast.error('Erro ao processar autorização do calendário');
                 
                 setTimeout(() => {
                     router.push('/jogos');

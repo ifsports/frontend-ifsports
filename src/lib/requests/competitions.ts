@@ -220,6 +220,20 @@ export async function putEditGame({ matchId, data } : { matchId: string, data: o
   }
 }
 
+export async function getCompetitionsMatch(matchId: string) {
+  try {
+    const result = await axiosAPI<Match>({
+      endpoint: `/competitions/matches/${matchId}/`,
+      method: "GET",
+      withAuth: false
+    });
+    return { success: true, data: result.data };
+  } catch (err) {
+    const error = err as Error;
+    return { success: false, error: error.message };
+  }
+}
+
 export async function patchStartCompetition(competitionId: string) {
   try {
     const result = await axiosAPI<Competition>({

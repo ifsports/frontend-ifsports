@@ -1,6 +1,5 @@
 'use client'
 
-import { getCompetitionMatches } from "@/lib/requests/competitions";
 import type { Competition } from "@/types/competition";
 import type { MatchLive } from "@/types/match-comments";
 import Link from "next/link";
@@ -14,7 +13,10 @@ import { decodeAccessToken } from "@/lib/auth";
 import { useSession } from "next-auth/react";
 
 interface GameLiveProps {
-    matchData: MatchLive | null;
+    matchData: (MatchLive & { 
+        hasSchedule?: boolean; 
+        scheduled_datetime?: string;
+    }) | null;
     competition: Competition | null;
     selectedCampus: string;
     variant?: "student" | "organizer";
@@ -114,6 +116,11 @@ export default function GameLive({ matchData, competition, selectedCampus, varia
             return;
         }
 
+        if (!matchData?.scheduled_datetime) {
+            toast.warning('Esta partida ainda não tem data e horário definidos. Não é possível adicionar ao calendário.');
+            return;
+        }
+
         setIsAddingToCalendar(true);
 
         try {
@@ -123,34 +130,6 @@ export default function GameLive({ matchData, competition, selectedCampus, varia
                 withAuth: true
             });
 
-            const competitionMatchesResponse = await getCompetitionMatches(competition.id);
-
-            if (!competitionMatchesResponse.success) {
-                throw new Error(competitionMatchesResponse.error);
-            }
-
-            let specificMatch = competitionMatchesResponse.data?.results.find(
-                match => match.id === matchData.match_id
-            );
-
-            if (!specificMatch) {
-                specificMatch = competitionMatchesResponse.data?.results.find(
-                    match => match.id.toString() === matchData.match_id.toString()
-                );
-            }
-
-            if (!specificMatch) {
-                toast.error('Partida não encontrada. Não é possível adicionar ao calendário.');
-                setIsAddingToCalendar(false);
-                return;
-            }
-
-            if (!specificMatch.scheduled_datetime) {
-                toast.warning('Esta partida ainda não tem data e horário definidos. Não é possível adicionar ao calendário.');
-                setIsAddingToCalendar(false);
-                return;
-            }
-
             const summary = `${homeTeam?.name || 'Equipe Casa'} x ${awayTeam?.name || 'Equipe Visitante'}`;
             const matchUrl = `${window.location.origin}/jogos/${matchData.match_id}/campus/${selectedCampus}`;
             const description = `🏆 ${competition?.name || 'Competição'}
@@ -158,10 +137,9 @@ export default function GameLive({ matchData, competition, selectedCampus, varia
             ✈️ Visitante: ${awayTeam?.name || 'Equipe Visitante'}
             🏫 Campus: ${selectedCampus}
 
-            🔗 Ver detalhes: ${matchUrl}`;
-        
-            const startTime = new Date(specificMatch.scheduled_datetime);
-            
+            🔗 Acompanhar partida: ${matchUrl}`;
+
+            const startTime = new Date(matchData.scheduled_datetime);
             const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
 
             const eventData: CalendarEventCreate = {
@@ -188,6 +166,8 @@ export default function GameLive({ matchData, competition, selectedCampus, varia
             setIsAddingToCalendar(false);
         }
     };
+
+    const canAddToCalendar = matchData?.hasSchedule;
 
     if (isLoadingTeams) {
         return (
@@ -219,15 +199,15 @@ export default function GameLive({ matchData, competition, selectedCampus, varia
                 disabled={
                     isAddingToCalendar || 
                     status === 'loading' || 
-                    !matchData?.start_time
+                    !matchData?.hasSchedule
                 }
                 className={`absolute top-2 right-2 p-2 rounded-lg transition-colors ${
-                    !matchData?.start_time
+                    !matchData?.hasSchedule
                         ? 'text-gray-400 cursor-not-allowed'
                         : 'text-gray-600 hover:text-[#4CAF50] hover:bg-gray-50'
                 } disabled:opacity-50`}
                 title={
-                    !matchData?.start_time
+                    !matchData?.hasSchedule
                         ? "Partida sem data/hora definida"
                         : "Adicionar à agenda"
                 }

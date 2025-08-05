@@ -19,6 +19,7 @@ import { campusData } from "@/lib/campus";
 import { useCompetitions } from "@/hooks/useCompetitions";
 import { useMatches } from "@/hooks/useMatches";
 import { useCampusCode } from "@/hooks/useCampusCode";
+import { useEnrichedMatches } from '@/hooks/useEnrichedMatches';
 
 const MATCHES_PER_PAGE = 6;
 
@@ -28,7 +29,7 @@ export default function GamesContainer() {
     const [isCampusSelected, setIsCampusSelected] = useState(false);
     const [isCompetitionSelected, setIsCompetitionSelected] = useState(false);
     const [page, setPage] = useState(1);
-
+    
     const campusSelect = useCampusCode();
 
     useEffect(() => {
@@ -75,6 +76,10 @@ export default function GamesContainer() {
         setPage(1);
     }, [selectedCompetition]);
 
+    const { enrichedMatches: stableMatches, isLoading: isLoadingEnriched } = useEnrichedMatches(matches);
+
+    const isLoadingAllMatches = isLoadingMatches;
+
     return (
         <>
             <div className="flex items-start justify-between mb-8 max-[640px]:flex-col max-[640px]:gap-3">
@@ -102,54 +107,56 @@ export default function GamesContainer() {
                         </div>
                     )} 
                     <div className="flex">
-                            <CompetitionsFilter 
-                                label="o campus" 
-                                data={campusData}
-                                value={selectedCampus}
-                                onChange={(value) => {
-                                    setIsCompetitionSelected(false);
-                                    setSelectedCompetition("");
-                                    setSelectedCampus(value);
-                                    setIsCampusSelected(false);
-                                }} 
-                            />
-                            <Button 
-                                onClick={() => { setIsCampusSelected(true)}} 
-                                variant={"link"} 
-                                disabled={!selectedCampus || isLoadingMatches}
-                                className="rounded-none rounded-tr-lg rounded-br-lg border-none cursor-pointer text-[#ffffff] bg-[#4CAF50] hover:bg-[#147A02]"
-                            >
-                                <Search size={18} />
-                            </Button>
-                        </div>
+                        <CompetitionsFilter 
+                            label="o campus" 
+                            data={campusData}
+                            value={selectedCampus}
+                            onChange={(value) => {
+                                setIsCompetitionSelected(false);
+                                setSelectedCompetition("");
+                                setSelectedCampus(value);
+                                setIsCampusSelected(false);
+                            }} 
+                        />
+                        <Button 
+                            onClick={() => { setIsCampusSelected(true)}} 
+                            variant={"link"} 
+                            disabled={!selectedCampus || isLoadingMatches}
+                            className="rounded-none rounded-tr-lg rounded-br-lg border-none cursor-pointer text-[#ffffff] bg-[#4CAF50] hover:bg-[#147A02]"
+                        >
+                            <Search size={18} />
+                        </Button>
+                    </div>
                 </div>
             </div>
             
-            {isLoadingMatches && isCompetitionSelected && (
+            {isLoadingAllMatches && isCompetitionSelected && (
                 <div className="flex items-center justify-center w-full my-30">
                     <p>Carregando partidas...</p>
                 </div>
             )}
 
-            {!isLoadingMatches && (
+            {!isLoadingAllMatches && (
                 <>
                     {isCompetitionSelected ? (
-                        matches && matches.length > 0 ? (
+                        stableMatches && stableMatches.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {matches.map((match) => {
+                                {stableMatches.map((match) => {
+                                    console.log(`🎮 Renderizando match ${match.match_id} com hasSchedule: ${match.hasSchedule}`);
+                                    
                                     return (
-                                    <GameLive
-                                        key={match.match_id} 
-                                        matchData={match}
-                                        competition={competition}
-                                        selectedCampus={selectedCampus}
-                                    />
+                                        <GameLive
+                                            key={match.match_id} 
+                                            matchData={match}
+                                            competition={competition}
+                                            selectedCampus={selectedCampus}
+                                        />
                                     );
                                 })}
                             </div>
                         ) : (
                             <div className="flex items-center justify-center w-full my-30">
-                            <p>Não há partidas registradas para esta competição!</p>
+                                <p>Não há partidas registradas para esta competição!</p>
                             </div>
                         )
                     ) : (
@@ -166,7 +173,7 @@ export default function GamesContainer() {
                 </>
             )}
 
-            {matches.length > 0 && !isLoadingMatches && (
+            {stableMatches.length > 0 && !isLoadingAllMatches && (
                 <Pagination className="my-14">
                     <PaginationContent>
                         <PaginationItem>
