@@ -5,10 +5,15 @@ import { getDetailsUserByIds } from '@/lib/requests/auth';
 import { getTeamInCompetition } from '@/lib/requests/competitions';
 import { getDetailsCompetition } from '@/lib/requests/competitions';
 import type { Request } from '@/types/requests';
-import type { TeamWithCompetition } from '@/types/team';
+import type { Team, TeamWithCompetition } from '@/types/team';
 import type { User } from '@/types/user';
 import React from 'react';
 import { toast } from 'sonner';
+import type { Competition } from '@/types/competition';
+
+interface TeamWithCompetitionData extends Team {
+  competition?: Competition | null;
+}
 
 export function useRequests() {
   const queryClient = useQueryClient();
@@ -148,6 +153,7 @@ export function useRequests() {
     queryFn: async () => {
       if (allUserIds.length === 0) return [];
       const result = await getDetailsUserByIds({ ids: allUserIds });
+      console.log(result)
       if (!result.success) {
         throw new Error(result.error);
       }
@@ -167,20 +173,33 @@ export function useRequests() {
       );
 
       let userData = undefined; 
-      if (usersData && Array.isArray(usersData) && request.user_id) {
-        userData = usersData.find((user: any) => user.id === request.user_id);
+      if (usersData && Array.isArray(usersData)) {
+        userData = usersData.find((user: any) => user.matricula === request.user_id);
+      }
+
+      // ✅ Enriquecer os membros da equipe com dados dos usuários
+      let enrichedTeam: TeamWithCompetitionData | undefined = teamData;
+      if (teamData && teamData.members && usersData && Array.isArray(usersData)) {
+        enrichedTeam = {
+          ...teamData,
+          members: teamData.members.map((member: any) => {
+            const memberUserData = usersData.find((user: any) => user.matricula === member.user_id);
+            return {
+              ...member,
+              user_data: memberUserData || null
+            };
+          }),
+          competition: competitionData || null
+        } as TeamWithCompetitionData;
       }
 
       return {
         ...request,
-        team: teamData ? {
-          ...teamData,
-          competition: competitionData || null
-        } : undefined,
+        team: enrichedTeam,
         user: userData
       };
     });
-  }, [requestsData, teamsData, competitionsData, usersData]); // ✅ Adicionar usersData como dependência
+  }, [requestsData, teamsData, competitionsData, usersData]);
 
   return {
     requests: processedRequests,

@@ -149,14 +149,6 @@ export default function KnockoutCompetition({
     );
   };
 
-  if (rounds.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center p-8 text-gray-500">
-        <p>Nenhuma fase de eliminatórias disponível para esta competição.</p>
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="w-full">

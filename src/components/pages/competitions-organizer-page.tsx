@@ -63,11 +63,10 @@ export default function OrganizerCompetitionsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[47rem] md:min-w-full">
             <thead>
-              <tr className="grid grid-cols-5 gap-12 items-center px-4 py-2 bg-gray-50 text-gray-400 border border-gray-300 rounded-lg">
+              <tr className="grid grid-cols-4 gap-12 items-center px-4 py-2 bg-gray-50 text-gray-400 border border-gray-300 rounded-lg">
                 <th className="text-left">Nome da competição</th>
                 <th className="text-left">Status</th>
                 <th className="text-left">Equipes inscritas</th>
-                <th className="text-left">Data início</th>
                 <th className="text-left">Ações</th>
               </tr>
             </thead>
@@ -75,7 +74,7 @@ export default function OrganizerCompetitionsPage() {
               {competitions.map((competition, index) => (
                 <tr 
                   key={competition.id}
-                  className={`grid grid-cols-5 gap-12 px-4 py-4 text-gray-800 ${
+                  className={`grid grid-cols-4 gap-12 px-4 py-4 text-gray-800 ${
                     index !== competitions.length - 1 ? 'border-b border-gray-300' : ''
                   }`}
                 >
@@ -94,10 +93,6 @@ export default function OrganizerCompetitionsPage() {
                   
                   <td className="flex items-center">
                     {teamsCountMap[competition.id] ?? 0} equipes
-                  </td>
-                  
-                  <td className="flex items-center">
-                    {formatDate(competition.start_date)}
                   </td>
                   
                   <td className="flex items-center">

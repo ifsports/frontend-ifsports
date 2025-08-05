@@ -20,6 +20,13 @@ export interface TeamMember {
   name?: string;
   registration?: string;
   course?: string;
+  user_data?: {
+    nome?: string;
+    matricula?: string;
+    curso?: string;
+    email?: string;
+    // adicione outros campos conforme necessário
+  } | null;
 }
 
 export interface APIGetTeamsFromCampus {

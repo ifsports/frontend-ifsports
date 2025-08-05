@@ -143,7 +143,7 @@ export default function GamesContainer() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {stableMatches.map((match) => {
                                     console.log(`🎮 Renderizando match ${match.match_id} com hasSchedule: ${match.hasSchedule}`);
-                                    
+                                    console.log(stableMatches)
                                     return (
                                         <GameLive
                                             key={match.match_id} 

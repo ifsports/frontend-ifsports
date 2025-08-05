@@ -210,14 +210,14 @@ export default function RequestsPage() {
                           key={member.user_id}
                           className={`grid grid-cols-[2fr_1fr_1.5fr] gap-4 p-4 text-sm ${index !== (selectedRequest.team?.members?.length || 0) - 1 ? 'border-b border-gray-200' : ''}`}
                         >
-                          <td className="truncate" title={member.name || member.user_id}>
-                            {member.name || member.user_id}
+                          <td className="truncate" title={member.user_data?.nome || member.user_id}>
+                            {member.user_data?.nome || member.user_id}
                           </td>
-                          <td className="truncate" title={member.registration || 'N/A'}>
-                            {member.registration || 'N/A'}
+                          <td className="truncate" title={member.user_data?.matricula || 'N/A'}>
+                            {member.user_data?.matricula || 'N/A'}
                           </td>
-                          <td className="truncate" title={member.course || 'N/A'}>
-                            {member.course || 'N/A'}
+                          <td className="truncate" title={member.user_data?.curso || 'N/A'}>
+                            {member.user_data?.curso || 'N/A'}
                           </td>
                         </tr>
                       ))}

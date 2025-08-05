@@ -219,12 +219,6 @@ export default function TeamsPage() {
           );
         })}
       </div>
-
-      {competitionsWithTeams?.reduce((acc, item) => acc + item.teams.length, 0) === 0 && (
-        <div className="flex flex-col items-center justify-center p-8 text-gray-500">
-          <p>Nenhuma equipe encontrada.</p>
-        </div>
-      )}
     </div>
   );
 }
